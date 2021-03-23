@@ -17,7 +17,7 @@ def update(frames):
     plot.set_data(a)
     return [plot]
 
-nFrames=1000
+nFrames=10
 fDelay = 20 
 n = 10
 a = np.zeros((n,n))
