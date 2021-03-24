@@ -42,6 +42,7 @@ def Policy1(R,C):
                             a[rr,cc]=color
                             agent[ID,0]=rr
                             agent[ID,1]=cc
+                            agent[ID,3]=empty_score
                             return
                         elif best_score>current_score:
                             best_R=rr
@@ -51,6 +52,7 @@ def Policy1(R,C):
         a[best_R,best_C]=color
         agent[ID,0]=best_R
         agent[ID,1]=best_C
+        agent[ID,3]=best_score
     return
 
 def Define_Friends():
@@ -78,7 +80,6 @@ def Policy2(R,C):
                 relocation_positions=np.vstack((relocation_positions, \
                                        relocation_position))
                 
-    
     #randomly select a move location
     if relocation_positions=='none':
         return
@@ -86,20 +87,36 @@ def Policy2(R,C):
         if np.ndim(relocation_positions)==1:
             relocation_positions=np.array([relocation_positions])
         sel=random.sample(range(0,len(relocation_positions)),1)
-        # print(len(relocation_positions))
-        # print(sel)
-        # print(relocation_positions)
-        
         sel_R=relocation_positions[sel,0]
         sel_C=relocation_positions[sel,1]
+        sel_score=relocation_positions[sel,2]
         a[R,C]=0
         a[sel_R,sel_C]=color
         agent[ID,0]=sel_R
         agent[ID,1]=sel_C
+        agent[ID,3]=sel_score
     return
+
+def Define_Friends_Same_Color():
+    n_friends = 10
+    #define each agents friends, friends must be same color
+    agent_friends=np.zeros([N,n_friends])
+    Friend_Ord=np.arange(N)
         
-        
-        
+    for n in range(N):
+        np.random.shuffle(Friend_Ord)
+        current_friend=0
+        nn=0
+        while current_friend < n_friends:
+            
+            if agent[n,2] == agent[Friend_Ord[nn],2]: # if colors match
+                agent_friends[n,current_friend]=Friend_Ord[nn]
+                current_friend=current_friend+1
+            nn=nn+1
+    
+    return agent_friends
+
+
 def Phone(FRIEND):
     F=int(FRIEND)
     R=agent[F,0]
@@ -133,6 +150,7 @@ def Phone(FRIEND):
     
     return neighborhood
 
+
     
                            
 k=3
@@ -161,56 +179,77 @@ cmap = ListedColormap(['w', 'b', 'r']) #define [0 1 2] as [white blue red]
 
 #create agent matrix
 ID=0
-agent=np.zeros([N,3])
+agent=np.zeros([N,4])
 for er in np.arange(S):
     for ec in np.arange(S):
         if a[er,ec] != 0:
-            agent[ID, 0]=er
+            agent[ID, 0]=er 
             agent[ID, 1]=ec
-            agent[ID, 2]=a[er,ec]
+            agent[ID, 2]=a[er,ec] # color
+            agent[ID, 3]=score(er,ec,a[er,ec]) #score
             ID=ID+1
 
 
 
-epochs=N
-tf= epochs*70
+t_epochs=N
+total_epochs=20
+tf= total_epochs*t_epochs
 t=0
 AgentOrder=np.arange(N)
 np.random.shuffle(AgentOrder)
-plt.matshow(a,cmap=cmap) #plot matrix
-plt.title(t)
-PLC=2
+# plt.matshow(a,cmap=cmap) #plot matrix
+# plt.title(t)
+POLICY='BB'
+epoch=0
+scoreVepoch=np.zeros(total_epochs)
 while t<=tf:
-    if t>epochs:
+    if t>epoch*t_epochs:
         np.random.shuffle(AgentOrder)
-        epochs=epochs+epochs
+        scoreVepoch[epoch]=agent[:,3].sum()
+        
         plt.pause(0.01)
-        plt.matshow(a,cmap=cmap) 
-        plt.title(t)
+
+        
+        plt.subplot(1,2,1)
+        plt.plot(1000/scoreVepoch)
+        plt.grid()
+        plt.xlabel('epoch')
+        plt.ylabel('1e3/score')
+        plt.subplot(1,2,2)
+        plt.imshow(a,cmap=cmap) 
+        plt.show()
+        epoch=epoch+1
+        
     for n in range(N):
         ID=AgentOrder[n]
         r=agent[ID,0]
         c=agent[ID,1]
         color=agent[ID,2]
         current_score=score(r,c,color)
-        if PLC==1:
+        if POLICY==1:
             Policy1(r,c)
-        elif PLC==2:
+        elif POLICY==2:
             if t==0:
                 agent_friends=Define_Friends()
             Policy2(int(r),int(c))
+        elif POLICY=='BB':
+            if t==0:
+                agent_friends=Define_Friends_Same_Color()
+                print(agent_friends)
+            Policy2(int(r),int(c))
+            
         # plt.matshow(a,cmap=cmap) #plot matrix
         # plt.title(t)
         # plt.show()
         t=t+1
 
 
-plt.matshow(a,cmap=cmap) 
-plt.title(t)
+# plt.matshow(a,cmap=cmap) 
+# plt.title(epoch)
 
                     
+# plt.plot(scoreVepoch)
 
-       
         
                 
                 
