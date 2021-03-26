@@ -205,13 +205,13 @@ scoreVepoch=np.zeros(total_epochs)
 while t<=tf:
     if t>epoch*t_epochs:
         np.random.shuffle(AgentOrder)
-        scoreVepoch[epoch]=agent[:,3].sum()
+        scoreVepoch[epoch]=agent[:,3].mean()
         
         plt.pause(0.01)
 
         
         plt.subplot(1,2,1)
-        plt.plot(1000/scoreVepoch)
+        plt.plot(scoreVepoch)
         plt.grid()
         plt.xlabel('epoch')
         plt.ylabel('1e3/score')
