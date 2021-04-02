@@ -4,10 +4,10 @@
 #   - pheremone (ph)
 # Variables are private and must be updated through update method(s)
 
-
+# _ underscore declares private variable (scope is limited to the class)
 class cell:
     
-    def _init_(self,r=None,c=None,obj=None,agent=None,ph=None):
+    def __init__(self,r=None,c=None,obj=None,agent=None,ph=None):
         self._r = r # row position
         self._c = c # column position
         self._obj = obj # object information
@@ -35,5 +35,8 @@ class cell:
         
     def updateCellPh(self,ph=None):
         self._ph = ph
-        
+    
+    def getr(self):
+        return self._r
+    
     pass
