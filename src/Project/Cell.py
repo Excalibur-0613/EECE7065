@@ -39,4 +39,16 @@ class cell:
     def getr(self):
         return self._r
     
+    def getc(self):
+        return self._c
+    
+    def getobj(self):
+        return self._obj
+    
+    def getagent(self):
+        return self._agent
+    
+    def getph(self):
+        return self._ph
+    
     pass
