@@ -24,7 +24,7 @@ class environment:
     def getCell(self, row, col):        #This should expose a particular cell object so the attributes can be changed via the cell class's methods
         return self._cell_array[row][col]
     
-    def GlobalPhDelta(self, PhChange):
+    def GlobalPhDelta(self, PhChange):  #This should be helpful for pheromone decay.  Negative PhChange will decrease pheromone levels.  Will not decrease pheromone below 0.
         for row in range(self._row_size):
             for location in range(self._column_size):
                 oldPh = self._cell_array[row][location].getph()
