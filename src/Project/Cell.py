@@ -5,7 +5,7 @@
 # Variables are private and must be updated through update method(s)
 
 # _ underscore declares private variable (scope is limited to the class)
-class cell:
+class Cell:
     
     def __init__(self,r=None,c=None,obj=None,agent=None,ph=None):
         self._r = r # row position
