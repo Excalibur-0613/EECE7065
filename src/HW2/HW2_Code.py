@@ -150,6 +150,73 @@ def Phone(FRIEND):
     
     return neighborhood
 
+def PolicyEF(R,C, maxSearchRadius):  
+    if current_score<k:
+        R=int(R)
+        C=int(C)
+        maxSearchRadius = int(maxSearchRadius)
+        color=agent[ID,2]
+        best_R=R
+        best_C=C
+        best_score= current_score
+        
+        searchlist = []
+        searchRadius = 0
+        
+        #randomly check cells within an expanding perimeter 
+        while searchRadius < maxSearchRadius:
+            searchRadius += 1
+            searchlist.clear()
+            
+            #Generate a new list of the coodrinates for a square 'ring' of cells searchRadius rows OR searchRadius columns away from home
+            for searchRow in range(R-searchRadius, R+searchRadius+1): #Left and right side including corners
+                searchlist.append([searchRow, C-searchRadius])
+                searchlist.append([searchRow, C+searchRadius])
+                
+            for searchCol in range(C-(searchRadius-1), C+searchRadius): #Top and bottom excluding corners
+                searchlist.append([R-searchRadius, searchCol])
+                searchlist.append([R+searchRadius, searchCol])
+            
+            #Ensure the list respects periodic boundary conditions by wrapping coordinates >= S around to the other edge
+            #Negative indicies already wrap back around, so no need to worry about them
+            for i in range(len(searchlist)):
+                if searchlist[i][0] >= S: #row exceeds bounds
+                    searchlist[i][0] -= S #wrap it
+                
+                if searchlist[i][1] >= S: #col exceeds bounds
+                    searchlist[i][1] -= S #wrap it
+                
+            #Randomize the order of this list
+            np.random.shuffle(searchlist)
+            
+            #Search through the list as in Policy 1
+            for cell in range(len(searchlist)):
+                rr = searchlist[cell][0]
+                cc = searchlist[cell][1]
+                
+                if searchRadius <= maxSearchRadius:
+                    if a[rr,cc]==0:
+                            empty_score=score(rr,cc,color)
+                            
+                            if empty_score>=k:
+                                a[R,C]=0
+                                a[rr,cc]=color
+                                agent[ID,0]=rr
+                                agent[ID,1]=cc
+                                agent[ID,3]=empty_score
+                                return
+                            elif best_score>current_score:
+                                best_R=rr
+                                best_C=cc
+                                best_score=empty_score
+            
+            
+        a[R,C]=0
+        a[best_R,best_C]=color
+        agent[ID,0]=best_R
+        agent[ID,1]=best_C
+        agent[ID,3]=best_score
+    return
 
     
                            
@@ -199,7 +266,7 @@ AgentOrder=np.arange(N)
 np.random.shuffle(AgentOrder)
 # plt.matshow(a,cmap=cmap) #plot matrix
 # plt.title(t)
-POLICY='BB'
+POLICY='EF'
 epoch=0
 scoreVepoch=np.zeros(total_epochs)
 while t<=tf:
@@ -237,6 +304,8 @@ while t<=tf:
                 agent_friends=Define_Friends_Same_Color()
                 print(agent_friends)
             Policy2(int(r),int(c))
+        elif POLICY == 'EF':
+            PolicyEF(r,c, 20)
             
         # plt.matshow(a,cmap=cmap) #plot matrix
         # plt.title(t)
