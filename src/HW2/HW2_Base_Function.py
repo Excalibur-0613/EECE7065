@@ -148,6 +148,84 @@ def Phone(FRIEND):
                 
     
     return neighborhood
+
+
+# The following function is supposed to be a random search
+# with the limitation that all cells distance d away must be checked 
+# before any cells distance d+1 away are checked.  
+# If no suitable cells are found within a maximum distance of the agent,
+# the search stops and the agent moves to the best candidate cell it checked.
+# This could model a society where people hate moving long distances, 
+# and prefer to relocate as close to their current home as possible.
+
+def PolicyEF(R,C, maxSearchRadius):  
+    if current_score<k:
+        R=int(R)
+        C=int(C)
+        maxSearchRadius = int(maxSearchRadius)
+        color=agent[ID,2]
+        best_R=R
+        best_C=C
+        best_score= current_score
+        
+        searchlist = []
+        searchRadius = 0
+        
+        #randomly check cells within an expanding perimeter 
+        while searchRadius < maxSearchRadius:
+            searchRadius += 1
+            searchlist.clear()
+            
+            #Generate a new list of the coodrinates for a square 'ring' of cells searchRadius rows OR searchRadius columns away from home
+            for searchRow in range(R-searchRadius, R+searchRadius+1): #Left and right side including corners
+                searchlist.append([searchRow, C-searchRadius])
+                searchlist.append([searchRow, C+searchRadius])
+                
+            for searchCol in range(C-(searchRadius-1), C+searchRadius): #Top and bottom excluding corners
+                searchlist.append([R-searchRadius, searchCol])
+                searchlist.append([R+searchRadius, searchCol])
+            
+            #Ensure the list respects periodic boundary conditions by wrapping coordinates >= S around to the other edge
+            #Negative indicies already wrap back around, so no need to worry about them
+            for i in range(len(searchlist)):
+                if searchlist[i][0] >= S: #row exceeds bounds
+                    searchlist[i][0] -= S #wrap it
+                
+                if searchlist[i][1] >= S: #col exceeds bounds
+                    searchlist[i][1] -= S #wrap it
+                
+            #Randomize the order of this list
+            np.random.shuffle(searchlist)
+            
+            #Search through the list as in Policy 1
+            for cell in range(len(searchlist)):
+                rr = searchlist[cell][0]
+                cc = searchlist[cell][1]
+                
+                if searchRadius <= maxSearchRadius:
+                    if a[rr,cc]==0:
+                            empty_score=score(rr,cc,color)
+                            
+                            if empty_score>=k:
+                                a[R,C]=0
+                                a[rr,cc]=color
+                                agent[ID,0]=rr
+                                agent[ID,1]=cc
+                                agent[ID,3]=empty_score
+                                return
+                            elif best_score>current_score:
+                                best_R=rr
+                                best_C=cc
+                                best_score=empty_score
+            
+            
+        a[R,C]=0
+        a[best_R,best_C]=color
+        agent[ID,0]=best_R
+        agent[ID,1]=best_C
+        agent[ID,3]=best_score
+    return
+
                       
 k=3
 nFrames=10
@@ -179,6 +257,9 @@ elif POLICY=='2':
 elif POLICY=='BB':
     n_friend=int(input('Enter number of friends for each agent: n = '))
     p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
+elif POLICY == 'EF':
+    R_max = int(input('Enter maximum search radius: R_max = '))
+    
 # for n_friend in n_friends:
 #     for p_neighbor in p_neighborhood:
 Current_Case=Current_Case+1
@@ -239,6 +320,8 @@ for sim in range(simulations):
                     agent_friends=Define_Friends_Same_Color()
                     print(agent_friends)
                 Policy2(int(r),int(c))
+            elif POLICY == 'EF':
+                PolicyEF(r, c, R_max)
                 
             t=t+1
 scores[Current_Case,:]=np.mean(sim_scores,axis=0)
@@ -250,6 +333,10 @@ elif POLICY=='2':
 elif POLICY=='BB':
     lbl='Policy '+ POLICY +' (n=%1i, p=%1i)' \
         % (n_friend,p_neighbor)
+elif POLICY=='EF':
+    lbl='Policy '+ POLICY +' (R_max=%1i)' \
+        % (R_max)
+        
 plt.plot(scores[Current_Case,:],label=lbl)
 
 
