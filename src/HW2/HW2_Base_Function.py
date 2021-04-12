@@ -65,36 +65,36 @@ def Define_Friends():
     return agent_friends
 
 def Policy2(R,C):
-
-    counter=0
-    friends=agent_friends[ID,:]
-    relocation_positions='none'
-    for friend in friends:
-        relocation_position=Phone(friend)
-
-        if relocation_position != 'none':
-            if counter==0:
-                relocation_positions=np.array(relocation_position)
-                counter=1
-            else:
-                relocation_positions=np.vstack((relocation_positions, \
-                                       relocation_position))
-                
-    #randomly select a move location
-    if relocation_positions=='none':
-        return
-    else:
-        if np.ndim(relocation_positions)==1:
-            relocation_positions=np.array([relocation_positions])
-        sel=random.sample(range(0,len(relocation_positions)),1)
-        sel_R=relocation_positions[sel,0]
-        sel_C=relocation_positions[sel,1]
-        sel_score=relocation_positions[sel,2]
-        a[R,C]=0
-        a[sel_R,sel_C]=color
-        agent[ID,0]=sel_R
-        agent[ID,1]=sel_C
-        agent[ID,3]=sel_score
+    if current_score<k:
+        counter=0
+        friends=agent_friends[ID,:]
+        relocation_positions='none'
+        for friend in friends:
+            relocation_position=Phone(friend)
+    
+            if relocation_position != 'none':
+                if counter==0:
+                    relocation_positions=np.array(relocation_position)
+                    counter=1
+                else:
+                    relocation_positions=np.vstack((relocation_positions, \
+                                           relocation_position))
+                    
+        #randomly select a move location
+        if relocation_positions=='none':
+            return
+        else:
+            if np.ndim(relocation_positions)==1:
+                relocation_positions=np.array([relocation_positions])
+            sel=random.sample(range(0,len(relocation_positions)),1)
+            sel_R=relocation_positions[sel,0]
+            sel_C=relocation_positions[sel,1]
+            sel_score=relocation_positions[sel,2]
+            a[R,C]=0
+            a[sel_R,sel_C]=color
+            agent[ID,0]=sel_R
+            agent[ID,1]=sel_C
+            agent[ID,3]=sel_score
     return
 
 def Define_Friends_Same_Color():

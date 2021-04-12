@@ -158,7 +158,7 @@ N=1400
 q=100
 
 t_epochs=N
-total_epochs=20
+total_epochs=1#20
 tf= total_epochs*t_epochs
 
 POLICIES=[1,3]
@@ -166,8 +166,9 @@ POLICIES=[1,3]
 # p_neighborhood = [3,5] #must be odd number, pxp matrix around friend
 
 scores=np.zeros([7,tf])
+scores_SD=np.zeros([7,tf])
 Current_Case=-1
-simulations=30
+simulations=1#30
 for POLICY in POLICIES:
     if POLICY==1:
         n_friends=[1]
@@ -238,6 +239,7 @@ for POLICY in POLICIES:
                             
                         t=t+1
             scores[Current_Case,:]=np.mean(sim_scores,axis=0)
+            scores_SD[Current_Case,:]=np.std(sim_scores,axis=0)
             if POLICY==1:
                 lbl='Policy %1i (q=%1i)' % (POLICY,q)
             elif POLICY==2:
@@ -247,7 +249,7 @@ for POLICY in POLICIES:
                 lbl='Policy %1i (n=%1i, p=%1i)' \
                     % (POLICY,n_friend,p_neighbor)
             plt.plot(scores[Current_Case,:],label=lbl)
-
+            plt.plot(scores_SD[Current_Case,:],label=lbl)
 # for CSS in range(1,7)
 # plt.subplot(6,1,CSS)
 # plt.plot(np.transpose(scores))

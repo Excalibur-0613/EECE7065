@@ -1,2 +1,369 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+import math
+#matplotlib qt
+import matplotlib.pyplot as plt
+import numpy as np
+import skfuzzy as fuzz
+from skfuzzy import control as ctrl
+from geneticalgorithm import geneticalgorithm as ga
+
+def Tension(mu, pa, po):
+    dao = np.linalg.norm(pa-po)
+    
+    T = (K*(dao-mu)) * (pa-po)/dao 
+
+    if dao<mu:
+        T=np.array([0, 0])
+    return T
+def MU(mu,mud,dt):
+    UB=2
+    LB=0.5
+    mu=mu+mud*dt
+    if mu>UB:
+        mu=2
+    elif mu<LB:
+        mu=1
+    return mu
+def FLC():
+########### FUZZY LOGIC CONTROLLER #####################
+    #Tension = ctrl.Antecedent(np.arange(-500, 500, 1), 'Tension')
+    Er = ctrl.Antecedent(np.arange(-1, 1, 0.01), 'Er')
+    Erd = ctrl.Antecedent(np.arange(-1, 1, 0.01), 'Erd')
+    u = ctrl.Consequent(np.arange(-1, 1, 0.005), 'u')
+    
+    
+    BEr=1
+    # stdERN=0.8
+    stdERZ=0.1
+    stdER=0.9
+    
+    Er['N'] = fuzz.gaussmf(Er.universe, -BEr, stdER)
+    Er['Z'] = fuzz.gaussmf(Er.universe, 0, stdERZ)
+    Er['P'] = fuzz.gaussmf(Er.universe, BEr, stdER)
+    
+    
+    BErd=1
+    # stdERdN=0.8
+    stdERdZ=0.1
+    stdERd=0.9
+    Erd['N'] = fuzz.gaussmf(Erd.universe, -BErd, stdERd)#(Erd.universe, [-500000, -ERdmb, -0.2])
+    Erd['Z'] = fuzz.gaussmf(Erd.universe, 0, stdERdZ)#(Erd.universe, [-ERdmb, 0, ERdmb])
+    Erd['P'] = fuzz.gaussmf(Erd.universe, BErd, stdERd)#(Erd.universe, [0.2, ERdmb, 500000])
+    
+    
+    Bu=1
+    # stduN=0.5
+    stduZ=0.1
+    stdu=0.9
+    u['N'] = fuzz.gaussmf(u.universe, -Bu, stdu)
+    u['Z'] = fuzz.gaussmf(u.universe, 0, stduZ)
+    u['P'] = fuzz.gaussmf(u.universe, Bu, stdu)
+    
+    rule1=ctrl.Rule(Er['N'] & Erd['N'],u['P']) #P let out line
+    rule2=ctrl.Rule(Er['N'] & Erd['Z'],u['P'])
+    rule3=ctrl.Rule(Er['N'] & Erd['P'],u['P'])
+    rule4=ctrl.Rule(Er['Z'] & Erd['N'],u['P'])
+    rule5=ctrl.Rule(Er['Z'] & Erd['Z'],u['Z'])
+    rule6=ctrl.Rule(Er['Z'] & Erd['P'],u['N']) #N take in line
+    rule7=ctrl.Rule(Er['P'] & Erd['N'],u['N'])
+    rule8=ctrl.Rule(Er['P'] & Erd['Z'],u['N'])
+    rule9=ctrl.Rule(Er['P'] & Erd['P'],u['N'])
+    Tensor_ctrl = ctrl.ControlSystem([rule1, rule4, rule7,
+                                        rule2, rule5, rule8, 
+                                        rule3, rule6, rule9])
+    FUZZ = ctrl.ControlSystemSimulation(Tensor_ctrl)
+
+    return FUZZ
+#################################################################
+def Compute_FLC(flc,Err,Errd):
+    flc.input['Er'] = Err
+    flc.input['Erd'] = Errd
+    flc.compute()
+    out=flc.output['u']
+    return out
+
+def error_fun(po,pa,cl,Ero):
+    dao=np.linalg.norm(po-pa)
+
+    #normalize between -1 and 1
+    #Er = 2*((dao-dat)-mn)/(mx-mn)-1
+    Er=dao-cl
+    #Er=(dao-dat)/max(dao+dat)
+    if Ero == None:
+        Ero = Er
+        
+    #Erd=2*( (Er-Ero)/dt -mnd)/(mxd-mnd)-1
+    Erd=(Er-Ero)/dt
+    return Er, Erd
+
+
+#side length (m)
+l=2
+
+#object position
+H=l/(2*math.cos(30*math.pi/180))+l/4*(math.tan(30*math.pi/180))
+x2=H*math.cos(math.pi/180*30)
+y2=H*math.sin(math.pi/180*30)
+x3=l/2
+y3=l/4*math.tan(math.pi/180*30)
+x1=l-x2
+y1=y2
+
+#target positions
+pt1=np.array([x1,y1])
+pt2=np.array([x2,y2])
+pt3=np.array([x3,y3])
+
+#string spring constant (N/m)
+K=95.54
+
+#Damping of spring (Ns/m)
+C=1
+
+#object mass (kg)
+m=0.01
+
+#time step
+dt=0.005
+#final time
+tf=5
+
+pt=np.array([0.75,0.25])
+po=np.array([l/2,l/2*math.tan(30*math.pi/180)])
+#Robot Anchor positions
+p1=np.array([0,0])
+p2=np.array([l/2,(l**2-(l/2)**2)**0.5])
+p3=np.array([l,0])
+#unstretched string length (m)
+no_stretch = np.linalg.norm(po)
+mu1=no_stretch
+mu2=no_stretch
+mu3=no_stretch
+mud1=0
+mud2=0
+mud3=0
+poo=po
+pod = (po-poo)/dt
+
+t=np.arange(0,tf,dt)
+ERtot=t*0
+k=0
+Er1=None
+Er2=None
+Er3=None
+ERROR=np.zeros([len(t),3])
+ERRORD=np.zeros([len(t),3])
+CL=np.zeros([len(t),3])
+TT=np.zeros([len(t),3])
+fuz=FLC()
+T=0.02
+ER=po-pt
+Erx=ER[0]
+Ery=ER[1]
+
+t0=0
+tf=tf
+x0=po[0]
+xf=pt[0]
+xd0=0
+xdf=0
+xdd0=0
+xddf=0
+
+Ax=np.array([[1, t0, t0**2, t0**3, t0**4, t0**5],
+            [1, tf, tf**2, tf**3, tf**4, tf**5],
+            [0, 1, 2*t0, 3*t0**2, 4*t0**3, 5*t0**4],
+            [0, 1, 2*tf, 3*tf**2, 4*tf**3, 5*tf**4],
+            [0, 0, 2, 6*t0, 12*t0**2, 20*t0**3],
+            [0, 0, 2, 6*tf, 12*tf**2, 20*tf**3]])
+Bx=np.array([x0, xf, xd0, xdf, xdd0, xddf])
+Cx = np.linalg.inv(Ax).dot(Bx)
+x_traj = Cx[0]*1 + Cx[1]*t + Cx[2]*t**2 + Cx[3]*t**3 + Cx[4]*t**4 + Cx[5]*t**5
+
+
+y0=po[1]
+yf=pt[1]
+yd0=0
+ydf=0
+ydd0=0
+yddf=0
+
+Ay=np.array([[1, t0, t0**2, t0**3, t0**4, t0**5],
+            [1, tf, tf**2, tf**3, tf**4, tf**5],
+            [0, 1, 2*t0, 3*t0**2, 4*t0**3, 5*t0**4],
+            [0, 1, 2*tf, 3*tf**2, 4*tf**3, 5*tf**4],
+            [0, 0, 2, 6*t0, 12*t0**2, 20*t0**3],
+            [0, 0, 2, 6*tf, 12*tf**2, 20*tf**3]])
+By=np.array([y0, yf, yd0, ydf, ydd0, yddf])
+Cy = np.linalg.inv(Ay).dot(By)
+y_traj = Cy[0]*1 + Cy[1]*t + Cy[2]*t**2 + Cy[3]*t**3 + Cy[4]*t**4 + Cy[5]*t**5
+traj=np.array([x_traj, y_traj])
+d1=traj-np.expand_dims(p1, axis=-1)
+d2=traj-np.expand_dims(p2, axis=-1)
+d3=traj-np.expand_dims(p3, axis=-1)
+cl1=np.linalg.norm(d1,axis=0)
+cl2=np.linalg.norm(d2,axis=0)
+cl3=np.linalg.norm(d3,axis=0)
+cld1=np.zeros(np.size(cl1))
+cld2=np.zeros(np.size(cl2))
+cld3=np.zeros(np.size(cl3))
+cld1[1:-1]=(cl1[1:-1]-cl1[0:-2])/dt
+cld2[1:-1]=(cl2[1:-1]-cl2[0:-2])/dt
+cld3[1:-1]=(cl3[1:-1]-cl3[0:-2])/dt
+
+fuz=FLC()
+p1o=np.linalg.norm(po-p1)
+p2o=np.linalg.norm(po-p2)
+p3o=np.linalg.norm(po-p3)
+ER1=p1o-cl1[0]
+ER2=p2o-cl2[0]
+ER3=p3o-cl3[0]
+MUD=np.zeros([len(t),3])
+cnt=0
+while k<len(t):
+        #ER1=np.linalg.norm(po-pt)
+        # mu1o=mu1
+        # mu2o=mu2
+        # mu3o=mu3
+        
+        mu1=MU(mu1,mud1,dt)
+        mu2=MU(mu2,mud2,dt)
+        mu3=MU(mu3,mud3,dt)
+        
+        
+        T1=Tension(mu1,p1,po)
+        T2=Tension(mu2,p2,po)
+        T3=Tension(mu3,p3,po)
+  
+        poo=po
+        podd=(T1+T2+T3-C*pod)/m
+        pod = pod + podd*dt
+        po = po + pod*dt + 0.5*podd*dt**2
+        #print(T1+T2+T3)
+        E1=error_fun(po,p1,cl1[k],ER1)
+        ER1=E1[0]
+        ERD1=E1[1]
+        # p1o=np.linalg.norm(po-p1)
+        # ER1=p1o-cl1[k]
+        # ERD1=cld1[k]-mud1
+        mud1=cld1[k]#Compute_FLC(fuz,ER1 ,ERD1)
+        
+        E2=error_fun(po,p2,cl2[k],ER2)
+        ER2=E2[0]
+        ERD2=E2[1]
+        # p2o=np.linalg.norm(po-p2)
+        # ER2=p2o-cl2[k]
+        # ERD2=cld2[k]-mud2
+        mud2=cld2[k]#Compute_FLC(fuz,ER2,ERD2)
+        
+        E3=error_fun(po,p3,cl3[k],ER3)
+        ER3=E3[0]
+        ERD3=E3[1]
+        # p3o=np.linalg.norm(po-p3)
+        # ER3=p3o-cl3[k]
+        # ERD3=cld3[k]-mud3
+        mud3=cld3[k]#Compute_FLC(fuz,ER3,ERD3)
+    
+        ERROR[k,0]=Er1
+        ERROR[k,1]=Er2
+        ERROR[k,2]=Er3
+        ERRORD[k,0]=Erd1
+        ERRORD[k,1]=Erd2
+        ERRORD[k,2]=Erd3
+        CL[k,0]=mu1
+        CL[k,1]=mu2
+        CL[k,2]=mu3
+        TT[k,0]=np.linalg.norm(T1)
+        TT[k,1]=np.linalg.norm(T2)
+        TT[k,2]=np.linalg.norm(T3)
+        MUD[k,0]=mud1
+        MUD[k,1]=mud2
+        MUD[k,2]=mud3
+
+        ERtot[k]=np.linalg.norm(pt-po)
+        
+        # print(po)
+        
+        if cnt==12:
+            cnt=0
+            plt.plot([p1[0],po[0]],[p1[1],po[1]],'o-k',\
+                    [p2[0],po[0]],[p2[1],po[1]],'o-k',\
+                    [p3[0],po[0]],[p3[1],po[1]],'o-k',\
+                    pt[0],pt[1],'ro')
+            plt.title(k*dt)
+            plt.grid()
+            plt.pause(0.001)
+            plt.show()
+        cnt=cnt+1
+        k=k+1    
+plt.plot(t,CL[:,0]-cl1)
+
+plt.grid()
+
+# while k<len(t):
+#     Erxo=ER[0]
+#     Eryo=ER[1]
+#     ER=po-pt
+#     Erx=ER[0]
+#     Ery=ER[1]
+#     Erxd=(Erx-Erxo)/dt
+#     Eryd=(Ery-Eryo)/dt
+#     th=math.atan2(Ery,Erx) 
+#     d=np.linalg.norm(ER)
+#     mudx=Compute_FLC(fuz,Erx,Erxd)
+#     mudy=Compute_FLC(fuz,Ery,Eryd)
+#     # po1=po-p1
+#     # po2=po-p2
+#     # po3=po-p3
+    
+#     # th1=math.atan2(po1[1],po1[0])
+#     # th2=math.atan2(po2[1],po2[0])
+#     # th3=math.atan2(po3[1],po3[0])
+    
+#     # angER=[abs(th-th1), abs(th-th2), abs(th-th3)]
+#     # minval=min(angER)
+#     # minind=angER.index(minval)
+    
+#     # TT=[0, 0, 0]
+#     # TT[minind]=0.02
+#     # T1=TT[0]
+#     # T2=TT[1]
+#     # T3=TT[2]
+    
+#     # T1=0.02
+#     # T2=0
+#     # T3=0
+#     po=po+T1*(p1-po)+T2*(p2-po)+T3*(p3-po)
+
+#     plt.plot([p1[0],po[0]],[p1[1],po[1]],'o-k',\
+#             [p2[0],po[0]],[p2[1],po[1]],'o-k',\
+#             [p3[0],po[0]],[p3[1],po[1]],'o-k',\
+#             pt[0],pt[1],'ro')
+#     plt.title(k*dt)
+#     plt.grid()
+#     plt.pause(0.1)
+#     plt.show()
+#     k=k+1
+
+# # plt.plot(t,ERROR[:,0])
+# plt.plot(t,CL)
+# plt.legend(['mu1','mu2','mu3'])
+# plt.grid()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

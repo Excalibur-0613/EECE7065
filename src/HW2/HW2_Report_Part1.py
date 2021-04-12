@@ -159,7 +159,7 @@ N=1400
 q=100
 
 t_epochs=N
-total_epochs=20
+total_epochs=1
 tf= total_epochs*t_epochs
 
 POLICIES=[1,2]
@@ -168,7 +168,7 @@ POLICIES=[1,2]
 
 scores=np.zeros([7,tf])
 Current_Case=-1
-simulations=30
+simulations=1
 for POLICY in POLICIES:
     if POLICY==1:
         n_friends=[1]
