@@ -245,6 +245,7 @@ POLICY=input('Choose one of the following policies (1,2,BB,EF,BR): ')
 # p_neighborhood = [3,5] #must be odd number, pxp matrix around friend
 
 scores=np.zeros([7,tf])
+scores_SD=np.zeros([7,tf])
 Current_Case=-1
 
 
@@ -325,6 +326,7 @@ for sim in range(simulations):
                 
             t=t+1
 scores[Current_Case,:]=np.mean(sim_scores,axis=0)
+scores_SD[Current_Case,:]=np.std(sim_scores,axis=0)
 if POLICY=='1':
     lbl='Policy '+ POLICY +' (q=%1i)' % (q)
 elif POLICY=='2':
@@ -338,8 +340,7 @@ elif POLICY=='EF':
         % (R_max)
         
 plt.plot(scores[Current_Case,:],label=lbl)
-
-
+#plt.plot(scores_SD[Current_Case,:],label=lbl)
 plt.grid()
 plt.ylabel('Mean Happiness')
 plt.xlabel('time step')

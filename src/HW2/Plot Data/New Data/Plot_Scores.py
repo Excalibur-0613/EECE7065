@@ -10,6 +10,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.colors import ListedColormap
 import numpy as np
 import random
+from tabulate import tabulate
 epochs=20
 agents=1400
 rg=range(0,agents*epochs,agents)
@@ -21,7 +22,7 @@ std12=np.zeros([7,len(rg)])
 hap13=np.load('P1P3mean.npy')
 SD13=np.load('P1P3sd.npy')
 std13=np.zeros([7,len(rg)])
-
+epoch=range(1,epochs)
 for CS in range(7):
     k=-1
     for ii in rg:
@@ -29,7 +30,7 @@ for CS in range(7):
         std12[CS,k]=SD12[CS,ii]
         std13[CS,k]=SD13[CS,ii]
     
-
+headers=['']
 
 
 

@@ -64,37 +64,38 @@ def Define_Friends():
     
     return agent_friends
 
+
 def Policy2(R,C):
-
-    counter=0
-    friends=agent_friends[ID,:]
-    relocation_positions='none'
-    for friend in friends:
-        relocation_position=Phone(friend)
-
-        if relocation_position != 'none':
-            if counter==0:
-                relocation_positions=np.array(relocation_position)
-                counter=1
-            else:
-                relocation_positions=np.vstack((relocation_positions, \
-                                       relocation_position))
-                
-    #randomly select a move location
-    if relocation_positions=='none':
-        return
-    else:
-        if np.ndim(relocation_positions)==1:
-            relocation_positions=np.array([relocation_positions])
-        sel=random.sample(range(0,len(relocation_positions)),1)
-        sel_R=relocation_positions[sel,0]
-        sel_C=relocation_positions[sel,1]
-        sel_score=relocation_positions[sel,2]
-        a[R,C]=0
-        a[sel_R,sel_C]=color
-        agent[ID,0]=sel_R
-        agent[ID,1]=sel_C
-        agent[ID,3]=sel_score
+    if current_score<k:
+        counter=0
+        friends=agent_friends[ID,:]
+        relocation_positions='none'
+        for friend in friends:
+            relocation_position=Phone(friend)
+    
+            if relocation_position != 'none':
+                if counter==0:
+                    relocation_positions=np.array(relocation_position)
+                    counter=1
+                else:
+                    relocation_positions=np.vstack((relocation_positions, \
+                                           relocation_position))
+                    
+        #randomly select a move location
+        if relocation_positions=='none':
+            return
+        else:
+            if np.ndim(relocation_positions)==1:
+                relocation_positions=np.array([relocation_positions])
+            sel=random.sample(range(0,len(relocation_positions)),1)
+            sel_R=relocation_positions[sel,0]
+            sel_C=relocation_positions[sel,1]
+            sel_score=relocation_positions[sel,2]
+            a[R,C]=0
+            a[sel_R,sel_C]=color
+            agent[ID,0]=sel_R
+            agent[ID,1]=sel_C
+            agent[ID,3]=sel_score
     return
 
 def Define_Friends_Same_Color():
@@ -159,7 +160,7 @@ N=1400
 q=100
 
 t_epochs=N
-total_epochs=1
+total_epochs=20
 tf= total_epochs*t_epochs
 
 POLICIES=[1,2]
@@ -167,8 +168,9 @@ POLICIES=[1,2]
 # p_neighborhood = [3,5] #must be odd number, pxp matrix around friend
 
 scores=np.zeros([7,tf])
+scores_SD=np.zeros([7,tf])
 Current_Case=-1
-simulations=1
+simulations=30
 for POLICY in POLICIES:
     if POLICY==1:
         n_friends=[1]
@@ -239,6 +241,7 @@ for POLICY in POLICIES:
                             
                         t=t+1
             scores[Current_Case,:]=np.mean(sim_scores,axis=0)
+            scores_SD[Current_Case,:]=np.std(sim_scores,axis=0)
             if POLICY==1:
                 lbl='Policy %1i (q=%1i)' % (POLICY,q)
             elif POLICY==2:

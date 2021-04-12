@@ -65,36 +65,36 @@ def Define_Friends():
     return agent_friends
 
 def Policy2(R,C):
-
-    counter=0
-    friends=agent_friends[ID,:]
-    relocation_positions='none'
-    for friend in friends:
-        relocation_position=Phone(friend)
-
-        if relocation_position != 'none':
-            if counter==0:
-                relocation_positions=np.array(relocation_position)
-                counter=1
-            else:
-                relocation_positions=np.vstack((relocation_positions, \
-                                       relocation_position))
-                
-    #randomly select a move location
-    if relocation_positions=='none':
-        return
-    else:
-        if np.ndim(relocation_positions)==1:
-            relocation_positions=np.array([relocation_positions])
-        sel=random.sample(range(0,len(relocation_positions)),1)
-        sel_R=relocation_positions[sel,0]
-        sel_C=relocation_positions[sel,1]
-        sel_score=relocation_positions[sel,2]
-        a[R,C]=0
-        a[sel_R,sel_C]=color
-        agent[ID,0]=sel_R
-        agent[ID,1]=sel_C
-        agent[ID,3]=sel_score
+    if current_score<k:
+        counter=0
+        friends=agent_friends[ID,:]
+        relocation_positions='none'
+        for friend in friends:
+            relocation_position=Phone(friend)
+    
+            if relocation_position != 'none':
+                if counter==0:
+                    relocation_positions=np.array(relocation_position)
+                    counter=1
+                else:
+                    relocation_positions=np.vstack((relocation_positions, \
+                                           relocation_position))
+                    
+        #randomly select a move location
+        if relocation_positions=='none':
+            return
+        else:
+            if np.ndim(relocation_positions)==1:
+                relocation_positions=np.array([relocation_positions])
+            sel=random.sample(range(0,len(relocation_positions)),1)
+            sel_R=relocation_positions[sel,0]
+            sel_C=relocation_positions[sel,1]
+            sel_score=relocation_positions[sel,2]
+            a[R,C]=0
+            a[sel_R,sel_C]=color
+            agent[ID,0]=sel_R
+            agent[ID,1]=sel_C
+            agent[ID,3]=sel_score
     return
 
 def Define_Friends_Same_Color():
@@ -158,7 +158,7 @@ N=1400
 q=100
 
 t_epochs=N
-total_epochs=1#20
+total_epochs=20
 tf= total_epochs*t_epochs
 
 POLICIES=[1,3]
@@ -168,7 +168,7 @@ POLICIES=[1,3]
 scores=np.zeros([7,tf])
 scores_SD=np.zeros([7,tf])
 Current_Case=-1
-simulations=1#30
+simulations=30
 for POLICY in POLICIES:
     if POLICY==1:
         n_friends=[1]
@@ -248,16 +248,16 @@ for POLICY in POLICIES:
             elif POLICY==3:
                 lbl='Policy %1i (n=%1i, p=%1i)' \
                     % (POLICY,n_friend,p_neighbor)
-            plt.plot(scores[Current_Case,:],label=lbl)
-            plt.plot(scores_SD[Current_Case,:],label=lbl)
+            #plt.plot(scores[Current_Case,:],label=lbl)
+            #plt.plot(scores_SD[Current_Case,:],label=lbl)
 # for CSS in range(1,7)
 # plt.subplot(6,1,CSS)
 # plt.plot(np.transpose(scores))
-plt.grid()
-plt.ylabel('Mean Happiness')
-plt.xlabel('time step')
-plt.legend()
-plt.title('Mean Happiness vs. Time')
+# plt.grid()
+# plt.ylabel('Mean Happiness')
+# plt.xlabel('time step')
+# plt.legend()
+# plt.title('Mean Happiness vs. Time')
 
 # plt.show()
 
