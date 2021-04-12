@@ -22,7 +22,7 @@ hap13=np.load('P1P3mean.npy')
 SD13=np.load('P1P3sd.npy')
 std13=np.zeros([7,len(rg)])
 
-for CS in range(6):
+for CS in range(7):
     k=-1
     for ii in rg:
         k=k+1
