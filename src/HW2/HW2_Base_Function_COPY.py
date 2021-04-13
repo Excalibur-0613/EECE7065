@@ -1,0 +1,435 @@
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from matplotlib.colors import ListedColormap
+import numpy as np
+import random
+import math
+
+def score(R,C,color):
+    neighbors = np.array([[R-1,C-1], [R-1,C], [R-1,C+1], \
+                          [R,C-1],            [R,C+1], \
+                          [R+1,C-1], [R+1,C], [R+1,C+1]])%S
+    score=0
+    for neighbor in neighbors:
+        if a[int(neighbor[0]),int(neighbor[1])]==color:
+            score=score+1
+
+    return score
+
+
+def Policy1(R,C):
+    if current_score<k:
+        R=int(R)
+        C=int(C)
+        color=agent[ID,2]
+        qr=np.arange(S)
+        qc=np.arange(S)
+        np.random.shuffle(qr)
+        np.random.shuffle(qc)
+        best_R=R
+        best_C=C
+        best_score= current_score
+        Q=100
+        q=0
+        
+        for rr in qr:
+            for cc in qc:
+                if q <= Q:
+                    if a[rr,cc]==0:
+                        q=q+1
+                        empty_score=score(rr,cc,color)
+                        
+                        if empty_score>=k:
+                            a[R,C]=0
+                            a[rr,cc]=color
+                            agent[ID,0]=rr
+                            agent[ID,1]=cc
+                            agent[ID,3]=empty_score
+                            return
+                        elif best_score>current_score:
+                            best_R=rr
+                            best_C=cc
+                            best_score=empty_score
+        a[R,C]=0
+        a[best_R,best_C]=color
+        agent[ID,0]=best_R
+        agent[ID,1]=best_C
+        agent[ID,3]=best_score
+    return
+
+def Define_Friends():
+
+    #define each agents friends
+    agent_friends=np.zeros([N,n_friend])
+    for nn in range(N):
+        agent_friends[nn,:]=random.sample(range(N),n_friend)
+    
+    return agent_friends
+
+def Policy2(R,C):
+    if current_score<k:
+        counter=0
+        friends=agent_friends[ID,:]
+        relocation_positions='none'
+        for friend in friends:
+            relocation_position=Phone(friend)
+    
+            if relocation_position != 'none':
+                if counter==0:
+                    relocation_positions=np.array(relocation_position)
+                    counter=1
+                else:
+                    relocation_positions=np.vstack((relocation_positions, \
+                                           relocation_position))
+                    
+        #randomly select a move location
+        if relocation_positions=='none':
+            return
+        else:
+            if np.ndim(relocation_positions)==1:
+                relocation_positions=np.array([relocation_positions])
+            sel=random.sample(range(0,len(relocation_positions)),1)
+            sel_R=relocation_positions[sel,0]
+            sel_C=relocation_positions[sel,1]
+            sel_score=relocation_positions[sel,2]
+            a[R,C]=0
+            a[sel_R,sel_C]=color
+            agent[ID,0]=sel_R
+            agent[ID,1]=sel_C
+            agent[ID,3]=sel_score
+    return
+
+def Define_Friends_Same_Color():
+    n_friends = 10
+    #define each agents friends, friends must be same color
+    agent_friends=np.zeros([N,n_friends])
+    Friend_Ord=np.arange(N)
+        
+    for n in range(N):
+        np.random.shuffle(Friend_Ord)
+        current_friend=0
+        nn=0
+        while current_friend < n_friends:
+            
+            if agent[n,2] == agent[Friend_Ord[nn],2]: # if colors match
+                agent_friends[n,current_friend]=Friend_Ord[nn]
+                current_friend=current_friend+1
+            nn=nn+1
+    
+    return agent_friends
+
+
+def Phone(FRIEND):
+    F=int(FRIEND)
+    R=agent[F,0]
+    C=agent[F,1]
+    ind=(p_neighbor-1)/2
+    #neighborhood = np.zeros(p_neighborhood**2-1,3) #friend x row,col,score
+    ct=0
+    neighborhood='none'
+    for rr in range(int(R-ind),int(R+ind)):
+        for cc in range(int(C-ind),int(C+ind)):
+            # if r!=R and c!=C:
+            # print(r)
+            # print(c)
+            r=rr%S
+            c=cc%S
+            if a[r,c]==0: #if friends neighborhood has vacancy, then score the vacany position
+                empty_score = score(r,c,color)
+                if empty_score>=k: # if empty score is greater than min, add it to the possible locations
+                    if ct==0:
+                        neighborhood=np.array([r,c,score(r,c,color)])
+                        ct=1
+                    else:
+                        # asdf=np.array([r,c,score(r,c,color)])
+                        
+                        # if np.size(asdf)!=np.size(neighborhood[:,0]):
+                        #         print('stop')
+                                
+                        neighborhood=np.vstack((neighborhood,np.array([r,c,score(r,c,color)])))
+                
+    
+    return neighborhood
+
+
+# The following function is supposed to be a random search
+# with the limitation that all cells distance d away must be checked 
+# before any cells distance d+1 away are checked.  
+# If no suitable cells are found within a maximum distance of the agent,
+# the search stops and the agent moves to the best candidate cell it checked.
+# This could model a society where people hate moving long distances, 
+# and prefer to relocate as close to their current home as possible.
+
+def PolicyEF(R,C, maxSearchRadius):  
+    if current_score<k:
+        R=int(R)
+        C=int(C)
+        maxSearchRadius = int(maxSearchRadius)
+        color=agent[ID,2]
+        best_R=R
+        best_C=C
+        best_score= current_score
+        
+        searchlist = []
+        searchRadius = 0
+        
+        #randomly check cells within an expanding perimeter 
+        while searchRadius < maxSearchRadius:
+            searchRadius += 1
+            searchlist.clear()
+            
+            #Generate a new list of the coodrinates for a square 'ring' of cells searchRadius rows OR searchRadius columns away from home
+            for searchRow in range(R-searchRadius, R+searchRadius+1): #Left and right side including corners
+                searchlist.append([searchRow, C-searchRadius])
+                searchlist.append([searchRow, C+searchRadius])
+                
+            for searchCol in range(C-(searchRadius-1), C+searchRadius): #Top and bottom excluding corners
+                searchlist.append([R-searchRadius, searchCol])
+                searchlist.append([R+searchRadius, searchCol])
+            
+            #Ensure the list respects periodic boundary conditions by wrapping coordinates >= S around to the other edge
+            #Negative indicies already wrap back around, so no need to worry about them
+            for i in range(len(searchlist)):
+                if searchlist[i][0] >= S: #row exceeds bounds
+                    searchlist[i][0] -= S #wrap it
+                
+                if searchlist[i][1] >= S: #col exceeds bounds
+                    searchlist[i][1] -= S #wrap it
+                
+            #Randomize the order of this list
+            np.random.shuffle(searchlist)
+            
+            #Search through the list as in Policy 1
+            for cell in range(len(searchlist)):
+                rr = searchlist[cell][0]
+                cc = searchlist[cell][1]
+                
+                if searchRadius <= maxSearchRadius:
+                    if a[rr,cc]==0:
+                            empty_score=score(rr,cc,color)
+                            
+                            if empty_score>=k:
+                                a[R,C]=0
+                                a[rr,cc]=color
+                                agent[ID,0]=rr
+                                agent[ID,1]=cc
+                                agent[ID,3]=empty_score
+                                return
+                            elif best_score>current_score:
+                                best_R=rr
+                                best_C=cc
+                                best_score=empty_score
+            
+            
+        a[R,C]=0
+        a[best_R,best_C]=color
+        agent[ID,0]=best_R
+        agent[ID,1]=best_C
+        agent[ID,3]=best_score
+    return
+
+# This policy uses policy 2 friends, however they do not have to be the same color. After
+# a few epochs if a majority of friends in a group is one color, it will 
+
+def PolicyBR(R,C):
+    if ID in ID_OMIT:
+        pass
+    
+    else:
+        Policy2(R, C)
+   
+    return
+               
+k=3
+nFrames=10
+fDelay = 20 
+#SxS grid envirorment
+S = int(input('Enter S for SxS grid size (40 recommended): '))
+#Number of agents
+N=int(input('Enter number of agents (1400 recommended): '))
+q=100
+
+t_epochs=N
+total_epochs=int(input('Enter desired number of epochs:'))
+tf= total_epochs*t_epochs
+simulations=int(input('Enter desired number of simulations: '))
+POLICY=input('Choose one of the following policies (1,2,BB,EF,BR): ')
+# n_friends=[5,10,20]
+# p_neighborhood = [3,5] #must be odd number, pxp matrix around friend
+
+
+
+
+if POLICY=='1':
+    n_friend=[1]
+    p_neighbor= [1]    
+elif POLICY=='2':
+    n_friend=int(input('Enter number of friends for each agent: n = '))
+    p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
+elif POLICY=='BB':
+    n_friend=int(input('Enter number of friends for each agent: n = '))
+    p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
+elif POLICY == 'EF':
+    R_max = int(input('Enter maximum search radius: R_max = '))
+elif POLICY=='BR':
+    n_friend=int(input('Enter number of friends for each agent: n = '))
+    p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
+    omitPercent = float(input('Enter percentage of agents to exclude (i.e. 0.5): o = '))
+  
+
+  
+omitPercent = [0.05, 0.25, 0.5, 0.75, 0.95]
+
+scores=np.zeros([len(omitPercent),tf])
+scores_SD=np.zeros([len(omitPercent),tf])
+Current_Case=-1
+
+for o in omitPercent:
+
+    Current_Case=Current_Case+1
+    sim_scores=np.zeros([simulations,tf])
+    
+    omitNum = math.floor(N*o) # Number of agents to omit from active social network
+    ID_OMIT = list(range(0,omitNum))
+    
+    for sim in range(simulations):
+        
+        #intialize population and envirorment
+        a = np.zeros((S,S))
+        a[0,1:4] = [0,1,2] 
+        reds=np.ones(int(N/2)) #number of reds (agent)
+        blues=2*np.ones(int(N/2)) #number of blues (agent)
+        whites=np.zeros(S*S-N) #number of whites (empty)
+        a=np.hstack((reds,blues,whites)) # concatinate reds whites and blues
+        np.random.shuffle(a) # random shuffle
+        a=np.reshape(a,(S,S)) # reshape to matrix
+        
+        cmap = ListedColormap(['w', 'b', 'r']) #define [0 1 2] as [white blue red]
+        
+        #create agent matrix
+        ID=0
+        agent=np.zeros([N,4])
+        for er in np.arange(S):
+            for ec in np.arange(S):
+                if a[er,ec] != 0:
+                    agent[ID, 0]=er 
+                    agent[ID, 1]=ec
+                    agent[ID, 2]=a[er,ec] # color
+                    agent[ID, 3]=score(er,ec,a[er,ec]) #score
+                    ID=ID+1
+        
+        
+        
+        AgentOrder=np.arange(N)
+        np.random.shuffle(AgentOrder)
+        
+        t=0
+        epoch=0
+        while t<tf:
+           
+            for n in range(N):
+                if t>epoch*t_epochs:
+                    np.random.shuffle(AgentOrder)
+                    epoch=epoch+1
+                sim_scores[sim,t]=agent[:,3].mean()
+                ID=AgentOrder[n]
+                r=agent[ID,0]
+                c=agent[ID,1]
+                color=agent[ID,2]
+                current_score=score(r,c,color)
+                if POLICY=='1':
+                    Policy1(r,c)
+                elif POLICY=='2':
+                    if t==0:
+                        agent_friends=Define_Friends()
+                    Policy2(int(r),int(c))
+                elif POLICY=='BB':
+                    if t==0:
+                        agent_friends=Define_Friends_Same_Color()
+                        print(agent_friends)
+                    Policy2(int(r),int(c))
+                elif POLICY == 'EF':
+                    PolicyEF(r, c, R_max)
+                elif POLICY == 'BR':
+                    if t==0:
+                        agent_friends=Define_Friends()
+                    PolicyBR(int(r),int(c))
+                    
+                t=t+1
+    scores[Current_Case,:]=np.mean(sim_scores,axis=0)
+    scores_SD[Current_Case,:]=np.std(sim_scores,axis=0)
+if POLICY=='1':
+    lbl='Policy '+ POLICY +' (q=%1i)' % (q)
+elif POLICY=='2':
+    lbl='Policy '+ POLICY +' (n=%1i, p=%1i)' \
+        % (n_friend,p_neighbor)
+elif POLICY=='BB':
+    lbl='Policy '+ POLICY +' (n=%1i, p=%1i)' \
+        % (n_friend,p_neighbor)
+elif POLICY=='EF':
+    lbl='Policy '+ POLICY +' (R_max=%1i)' \
+        % (R_max)
+# elif POLICY=='BR':
+    # lbl='Policy '+ POLICY +' (n=%1i, p=%1i, o=%0.2f)' \
+        # % (n_friend,p_neighbor, omitPercent)        
+# plt.plot(scores[Current_Case,:],label=lbl)
+
+
+# plt.grid()
+# plt.ylabel('Mean Happiness')
+# plt.xlabel('time step')
+# plt.legend()
+# plt.title('Mean Happiness vs. Time')
+
+
+        
+                
+                
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+
+
+
+
+
+
+

@@ -3,7 +3,9 @@ import Environment
 
 class Agent():
     
-    def __init__(self, pose):
+    def __init__(self, pose, E):
+        self.Environment = E
+        self.Environment.getCellInfo()
         self._pose = pose
         self.getNeighboorCellInfo()
         
@@ -36,20 +38,15 @@ class Agent():
         for element in self.neighborPose:
             # Pass neighboor cell positions to getCellInfor method
             self.neighborInfo.append(self.getEnvCellInfo(element))
+            Environment.getCell()
         self.setValProb()
         # Check in with environment and create 8 
         # objects of the cell to include within the lists
         # with the correct information
     
-    def getEnvCellInfo(self):
-         
-        
-        
-        pass
-        # call environment methods to get specific cell information
-    
     def setValProb(self, agentProb, objectProb, phProb, beaconProb):
         # llst containing probabilities for different types of occupancy in neighbor cells
+        
         self.probs = [agentProb, objectProb, phProb, beaconProb]
         self.setCellProb()
         

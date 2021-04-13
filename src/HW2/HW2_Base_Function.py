@@ -3,7 +3,34 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.colors import ListedColormap
 import numpy as np
 import random
+import math
 
+'''
+Once this file is run the command prompt will ask for a few parameters. Here are the values we tested with: 
+    S: 40
+    # agents: 1400
+    desired # simulations: [3 for speed, 30 for submission accuracy]
+
+Policy Dependent Parameters:
+    
+Policy 2:
+    n: [5,10,20]
+    p: [3,5]
+    
+BB (Bennet Breese Policy 3):
+    n: [5, 10, 20]
+    p: [3, 5]
+    
+EF (Ethan Fitz Policy 3):
+    R_max: [1, 5, 10, 15, 20]
+    
+BR (Ben Russ Policy 3):
+    n: 10
+    p: 3
+    o: [0.05, 0.25, 0.5, 0.75, 0.95]
+    
+Once the simulation completes then a mean happiness plot will appear       
+'''
 def score(R,C,color):
     neighbors = np.array([[R-1,C-1], [R-1,C], [R-1,C+1], \
                           [R,C-1],            [R,C+1], \
@@ -226,6 +253,17 @@ def PolicyEF(R,C, maxSearchRadius):
         agent[ID,3]=best_score
     return
 
+def PolicyBR(R,C):
+    omitNum = math.floor(N*omitPercent) # Number of agents to omit from active social network
+    ID_OMIT = list(range(0,omitNum))
+    
+    if ID in ID_OMIT:
+        pass
+    
+    else:
+        Policy2(R, C)
+   
+    return
                       
 k=3
 nFrames=10
@@ -260,6 +298,10 @@ elif POLICY=='BB':
     p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
 elif POLICY == 'EF':
     R_max = int(input('Enter maximum search radius: R_max = '))
+elif POLICY=='BR':
+    n_friend=int(input('Enter number of friends for each agent: n = '))
+    p_neighbor =int(input('Enter p for pxp size of neighborhood (must be an odd number): p = '))
+    omitPercent = float(input('Enter percentage of agents to exclude (i.e. 0.5): o = '))
     
 # for n_friend in n_friends:
 #     for p_neighbor in p_neighborhood:
@@ -323,7 +365,10 @@ for sim in range(simulations):
                 Policy2(int(r),int(c))
             elif POLICY == 'EF':
                 PolicyEF(r, c, R_max)
-                
+            elif POLICY == 'BR':
+                   if t==0:
+                       agent_friends=Define_Friends()
+                   PolicyBR(int(r),int(c))   
             t=t+1
 scores[Current_Case,:]=np.mean(sim_scores,axis=0)
 scores_SD[Current_Case,:]=np.std(sim_scores,axis=0)
@@ -338,7 +383,10 @@ elif POLICY=='BB':
 elif POLICY=='EF':
     lbl='Policy '+ POLICY +' (R_max=%1i)' \
         % (R_max)
-        
+elif POLICY=='BR':
+    lbl='Policy '+ POLICY +' (n=%1i, p=%1i, o=%0.2f)' \
+        % (n_friend,p_neighbor, omitPercent) 
+         
 plt.plot(scores[Current_Case,:],label=lbl)
 #plt.plot(scores_SD[Current_Case,:],label=lbl)
 plt.grid()
