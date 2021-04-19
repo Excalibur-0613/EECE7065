@@ -14,7 +14,18 @@ def update(frames):
     a[plcn,plcm] = not(a[plcn,plcm])
     # print(np.array([plcn,plcm,bit]))
     # print(a)
-    plot.set_data(a)
+    
+    
+    cmap=plt.cm.RdYlGn
+    norm = plt.Normalize(a.min(), a.max())
+    rgba=cmap(norm(a))
+    obj_r=range(2) #row locations of objects
+    obj_c=range(2) #column locations of objects 
+    agent_r=5 #row locations of agents
+    agent_c=5 #column locations of agents
+    rgba[obj_r, obj_c, :3] = 0, 0, 0 #make objects black
+    rgba[agent_r, agent_c, :3] = 1, 1, 1 #make agents white
+    plot.set_data(rgba)
     return [plot]
 
 nFrames=10
@@ -25,9 +36,16 @@ a[0,0] = 1
 
 rng = np.random.default_rng()
 
+
 # fig = plt.figure()
 fig,ax = plt.subplots()
-plot = ax.matshow(a)
+
+
+
+plot = ax.imshow(a)#, interpolation='nearest')
+
+
+#plot = ax.imshow(a)
 #ax = plt.axes(xlim=(0,n),ylim=(0,n))
 # plot = plt.matshow(a, fignum=0)
 
