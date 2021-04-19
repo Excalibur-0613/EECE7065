@@ -13,6 +13,7 @@ class Cell:
         self._obj = obj # object information
         self._agent = agent # agent information
         self._ph = ph # pheremone information
+        self._forces = [0,0]  #Forces in row and col directions - positive col is 'East' - positive row is 'South'
     
     def updateCell(self,r=None,c=None,obj=None,agent=None,ph=None):
         self._r = r # row position
@@ -36,6 +37,9 @@ class Cell:
     def updateCellPh(self,ph=None):
         self._ph = ph
     
+    def updateCellForces(self, forces):
+        self._forces = forces
+    
     def getr(self):
         return self._r
     
@@ -50,5 +54,9 @@ class Cell:
     
     def getph(self):
         return self._ph
+    
+    def getforces(self):
+        return self._forces
+    
     
     pass
