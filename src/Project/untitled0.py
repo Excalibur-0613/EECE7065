@@ -7,7 +7,7 @@ Created on Thu Apr  1 09:11:43 2021
 
 import Cell
 
-Cell1=Cell.cell(123,1,1,1,1)
+Cell1=Cell.Cell(123,1,1,1,1)
 #Cell1.updateCellRow(123)
 #val=Cell1.getr()
 print(Cell1.getr())
@@ -17,7 +17,7 @@ print(Cell1.getr())
 
 import Environment 
 
-E = Environment.environment(4,4)  #make a 4x4 environment
+E = Environment.Environment(4,4)  #make a 4x4 environment
 print(E.getSize())    #confirm size
 print(E.getCell(3,0).getr())  #confirm cell 3,0 records its row as 3
 
@@ -31,8 +31,9 @@ E.getCell(3,0).updateCellPh(666)
 
 print(E.getCell(3,0).getph())  #now we can read and alter a cell's pheromone level
 
-E.GlobalPhDelta(-7)  #pheromone can decay across the board
+#Now that ph is a list, the global ph delta function needs reworked
+#E.GlobalPhDelta(-7)  #pheromone can decay across the board
 
-print(E.getCell(3,0).getph()) #It seems to work
+#print(E.getCell(3,0).getph()) #It seems to work
 
-print(E.getCell(3,1).getph()) #But negatave pheromone levels are impossible so the method will not bring ph level below 0
+#print(E.getCell(3,1).getph()) #But negatave pheromone levels are impossible so the method will not bring ph level below 0

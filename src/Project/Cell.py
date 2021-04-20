@@ -29,7 +29,7 @@ class Cell:
         self._c = c
         
     def updateCellObj(self,obj=None):
-        self._c = obj
+        self._obj = obj
         
     def updateCellAgent(self,agent=None):
         self._agent = agent

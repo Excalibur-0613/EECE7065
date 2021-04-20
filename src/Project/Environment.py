@@ -5,9 +5,9 @@
 
 import numpy as np
 import math
-import Cell
-import Agent
-import Object
+from Cell import Cell
+#import Agent
+#import Object
 
 class Environment(Cell):
     

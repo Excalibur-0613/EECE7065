@@ -6,7 +6,7 @@
 
 import numpy as np
 import math
-import Environment
+from Environment import Environment
 
 class Object(Environment):
     
@@ -15,23 +15,31 @@ class Object(Environment):
         self._currentRow = r
         self._currentCol = c
         self._weight = w
+        
+        #Init can't return anything, but we want to know whether the object got placed properly
+        #So we need a flag variable
+        
+        self._placementSuccess = False
+        
         #We must check for valid location before updating the environment
         
         if self._currentRow in range(self._env.getSize()[0]) and self._currentCol in range(self._env.getSize()[1]): #row and col are in bounds
             self._CurrentCell = self._env.getCell(self._currentRow, self._currentCol) #pick current cell
         else:
-            return False #error - invalid location
+            return #False #error - invalid location
         
         #Now we check occupancy before updating the environment
         if self._CurrentCell.getobj() == 0 and self._CurrentCell.getagent() == 0:
-            self._CurrentCell.UpdateCellObj(1) #Update the environment
-            return True #Object successfully placed in Environment
+            self._CurrentCell.updateCellObj(1) #Update the environment
+            self._placementSuccess = True
+            return #True #Object successfully placed in Environment
         else:
-            return False #error - cell is occupied by agent or other object
+            return #False #error - cell is occupied by agent or other object
             
    
     def Move(self, r, c):
         
+        self._placementSuccess = False
         #Check validity and occupancy, then move
         if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
             TargetCell = self._env.getCell(r,c) #pick target cell
@@ -41,13 +49,14 @@ class Object(Environment):
         #Check occupancy before moving
         if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
             
-            self._CurrentCell.UpdateCellObj(0) #Update the environment
-            TargetCell.UpdateCellObj(1)
+            self._CurrentCell.updateCellObj(0) #Update the environment
+            TargetCell.updateCellObj(1)
             
             self._CurrentCell = TargetCell #record the update
             self._currentRow = r
             self._currentCol = c
             
+            self._placementSuccess = True
             return True #Object successfully moved
         else:
             return False #error - target cell is occupied by agent or other object
@@ -75,4 +84,7 @@ class Object(Environment):
     
     def GetWeight(self):
         return self._weight
+    
+    def PlacementSuccess(self):
+        return self._placementSuccess 
     
