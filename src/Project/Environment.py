@@ -19,7 +19,7 @@ class Environment(Cell):
         for row in range(R):
             self._cell_array.append([])
             for location in range(C):
-                self._cell_array[row].append(Cell(row,location, 0,0,[]))        #This creates one new empty cell object in each possible location
+                self._cell_array[row].append(Cell(row,location, 0,0,0))        #This creates one new empty cell object in each possible location
     
        
         #This code probably belongs in main - The environment should not need to create agents and objects
@@ -48,14 +48,15 @@ class Environment(Cell):
     def getCell(self, row, col):        
         return self._cell_array[row][col]
     
-    # This should be helpful for pheromone decay.  Negative PhChange will decrease pheromone levels.  Will not decrease pheromone below 0.
-    # Will need rework if ph is set to be a list
-    def GlobalPhDelta(self, PhChange):  
+    # This should be helpful for pheromone decay.  Pheromone levels can now be positive or negative.
+    #Negative values for PhChange push all ph closer to zero regardless of sign
+    def GlobalPhDelta(self, PhChange): 
+        if PhChange == 0:
+            return
         for row in range(self._row_size):
             for location in range(self._column_size):
                 oldPh = self._cell_array[row][location].getph()
-                if (oldPh + PhChange) > 0:
-                    self._cell_array[row][location].updateCellPh(oldPh + PhChange)
+                self._cell_array[row][location].updateCellPh(oldPh + np.sign(oldPh) * PhChange)
                     
     #This will return the force values in each cell back to 0,0. Force is supposed to be momentary, so should be cleared at the end of each timestep
     def GlobalForcesClear(self):  
