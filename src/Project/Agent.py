@@ -1,11 +1,11 @@
 import Environment
+import numpy as np
 # Agent Object 
 
 class Agent():
     
     def __init__(self, r, c, f, E):
-        self._env = E # self.Environment.getCellInfo()
-        
+        self._env = E
         self._currentRow = r
         self._currentCol = c
         self._force = f
@@ -65,40 +65,73 @@ class Agent():
             self.neighborInfo.append(tempCell)
             
         # self.setCellProb()
-        
-        return self.neighborInfo
-        
-        # Check in with environment and create 8 
-        # objects of the cell to include within the lists
-        # with the correct information
+        pass
+        # return self.neighborInfo
     
-    def setValProb(self, agentProb, objectProb, phProb, beaconProb):
-        # list containing probabilities for different types of occupancy in neighbor cells
+    def setNeighborProb(self):
         
-        self._probs = [agentProb, objectProb, phProb, beaconProb]
-        self.setCellProb()
+        self.neighborProb = []
+        self.phVals = []
+        self.prob = []
+        self.probSum = 0
         
-    def getValProb(self, accessProb):
-            return self._probs[accessProb]
-    
-    def setCellProb(self):
-        
-        self.neighborMin = min(min(self.neighborInfo, key=min))
+        for i in range(len(self.neighborInfo)):
+            
+            self.phVals.append(self.neighborInfo[i].getph())
+            
+        # print(self.phVals)
+        self.neighborMin = min(self.phVals)
         
         for cellInfo in self.neighborInfo:
-            self.probSum = self.probSum + (sum(cellInfo) + abs(self.neighborMin) + 1)
-            self.prob.append(sum(cellInfo) + abs(self.neighborMin) + 1)
-            
-        self.neighborProb = self.prob/self.probSum
+            self.probSum = self.probSum + (sum(self.phVals) + abs(self.neighborMin) + 1)
+            self.prob.append(sum(self.phVals) + abs(self.neighborMin) + 1)
+         
+        self.neighborProb = [x / self.probSum for x in self.prob]   
         
         pass
-        
-    def move(self, newPose):
-        
-        # Pheremone equation?
-        self.setPose(newPose)
+    
+    def move(self):
         
         self.getNeighboorCellInfo()
-        pass
+        self.setNeighborProb()
+        
+        rng = np.random.default_rng()
+        testList = np.array([0,1,2,3,4,5,6,7])
+        p = self.neighborProb
+        index = rng.choice(testList,1,p)
+        self.newPose = self.neighborPose[int(index)]
+        r = self.newPose[0]
+        c = self.newPose[1]
+        
+        self._placementSuccess = False
+        #Check validity and occupancy, then move
+        if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
+            TargetCell = self._env.getCell(r,c) #pick target cell
+        else:
+            return False #error - invalid location
+        
+        #Check occupancy before moving
+        if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
+            
+            self._CurrentCell.updateCellObj(0) #Update the environment
+            TargetCell.updateCellObj(1)
+            
+            self._CurrentCell = TargetCell #record the update
+            self._currentRow = r
+            self._currentCol = c
+            
+            self._placementSuccess = True
+            return True #Object successfully moved
+        else:
+            return False #error - target cell is occupied by agent or other object
+    
+    
+    
+    
+    
+    
+    
+    
+    
         
         

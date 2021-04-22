@@ -19,7 +19,7 @@ class Environment(Cell):
         for row in range(R):
             self._cell_array.append([])
             for location in range(C):
-                self._cell_array[row].append(Cell(row,location, 0,0,[]))        #This creates one new empty cell object in each possible location
+                self._cell_array[row].append(Cell(row,location, 0,0,0))        #This creates one new empty cell object in each possible location
     
        
         #This code probably belongs in main - The environment should not need to create agents and objects

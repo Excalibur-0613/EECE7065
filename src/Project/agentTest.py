@@ -98,10 +98,14 @@ for i in range(len(plcR)):
 print(agent[10].getR())
 print(agent[10].getC())
 
-print(agent[10].getNeighboorCellInfo()[0].getr())
-print(agent[10].getNeighboorCellInfo()[0].getc())
+# print(agent[10].getNeighboorCellInfo()[0].getr())
+# print(agent[10].getNeighboorCellInfo()[0].getc())
+agent[10].move()
 
-print(obj[10].GetLocation())
+print(agent[10].getR())
+print(agent[10].getC())
+
+# print(obj[10].GetLocation())
 
 
 
