@@ -29,7 +29,6 @@ class Agent():
         
         self.storeObjPose = [None, None]
         
-        
         if self._currentRow in range(self._env.getSize()[0]) and self._currentCol in range(self._env.getSize()[1]): #row and col are in bounds
             
             self._CurrentCell = self._env.getCell(self._currentRow, self._currentCol) #pick current cell
@@ -47,7 +46,6 @@ class Agent():
         
         else:
             return #False #error - cell is occupied by agent or other object
-        
         
     def getR(self):
         return self._currentRow
@@ -78,10 +76,6 @@ class Agent():
         # Call into environment object 8 times to create a list of 8 elements with information for each neighboring cell
         for neighborCellPosition in self.neighborPose:
 
-            # Pass neighboor cell positions to getCellInfo method
-            # tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
-            # self.neighborInfo.append(tempCell)
-            
             if neighborCellPosition[0] < self._env.getSize()[0] and neighborCellPosition[1] < self._env.getSize()[1] and neighborCellPosition[0] > 0 and neighborCellPosition[1] > 0:
                 
                 # Pass neighboor cell positions to getCellInfo method
@@ -96,10 +90,6 @@ class Agent():
                 elif self.neighborInfo[-1].getobj() and self.storeObjPose[0] != None and self.storeObjPose[1] != None:
                     
                     pass
-            
-            
-            
-        # return self.neighborInfo
     
     def setNeighborProb(self):
         
@@ -210,7 +200,6 @@ class Agent():
             
         else:
             return False #error - target cell is occupied by agent or other object
-    
     
     def PlacementSuccess(self):
         return self._placementSuccess
