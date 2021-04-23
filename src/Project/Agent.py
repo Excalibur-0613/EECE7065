@@ -43,7 +43,7 @@ class Agent():
         #Now we check occupancy before updating the environment
         if self._CurrentCell.getobj() == 0 and self._CurrentCell.getagent() == 0:
             
-            self._CurrentCell.updateCellObj(1) #Update the environment
+            self._CurrentCell.updateCellAgent(1) #Update the environment
             self._placementSuccess = True
             
             return #True #Object successfully placed in Environment
@@ -126,6 +126,15 @@ class Agent():
         r = 0
         c = 0
         
+        
+        self.getNeighboorCellInfo() #Update local perception BEFORE doing any check
+        
+        #Force check for adjacent objects
+        # objIsNear = False
+        # for i in range(len(self.neighborInfo)):
+        #     if self.neighborInfo[i].getobj():
+        #         objIsNear = True
+        
         # If object is directly north of object, i.e. "in the way" 
         # will only have probability to move towards SW or SE
         # Top priority case to avoid errors
@@ -137,11 +146,13 @@ class Agent():
             self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
             r = self.newPose[0]
             c = self.newPose[1]
+            
         
         # If there was an object pushed in a previous time step, set the propability to move south 
         # will not trigger if there is another object directly south
         elif self.storeObjPose[0] != None and self.storeObjPose[1] != None:
             
+            #print(self.storeObjPose)
             self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
             
             if self.recentPush and self.neighborInfo[4].getobj() == 0:
@@ -151,7 +162,9 @@ class Agent():
                 r = self.newPose[0]
                 c = self.newPose[1]
                 
-            elif self.storeObjPose in self.neighborPose:
+            else:
+                #print('ding!')
+                self.storeObjPose = [None, None]
                 return False  #If we are within pushing range of the object, we stay put so we can push it
             
         # Regular Random Movement, no prior objects
@@ -177,13 +190,14 @@ class Agent():
             
         else:
             
+            self.storeObjPose = [None, None]
             return False #error - invalid location
         
         # Check occupancy before moving
         if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
             
-            self._CurrentCell.updateCellObj(0) #Update the environment
-            TargetCell.updateCellObj(1)
+            self._CurrentCell.updateCellAgent(0) #Update the environment
+            TargetCell.updateCellAgent(1)
             
             self._CurrentCell = TargetCell #record the update
             self._currentRow = r
@@ -196,6 +210,7 @@ class Agent():
             return True #Object successfully moved
             
         else:
+            self.storeObjPose = [None, None]
             return False #error - target cell is occupied by agent or other object
         
     # Pass the cell location to add force to that cell position   
