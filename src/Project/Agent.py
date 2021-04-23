@@ -4,12 +4,13 @@ import numpy as np
 
 class Agent():
     
-    def __init__(self, r, c, f, E):
+    def __init__(self, r, c, f, E, goal):
         
         self._currentRow = r
         self._currentCol = c
         self._force = f
         self._env = E
+        self._goalLine = goal  #This row is the start of the goal zone
         
         #Init can't return anything, but we want to know whether the object got placed properly
         #So we need a flag variable
@@ -166,7 +167,7 @@ class Agent():
             else:
                 #print('ding!')
                 self.storeObjPose = [None, None]
-                #self.recentPush = False
+                self.recentPush = False
                 return False  #If we are within pushing range of the object, we stay put so we can push it
             
         elif self.recentPush: #If we pushed the object out of view, move South
@@ -202,6 +203,7 @@ class Agent():
         else:
             
             self.storeObjPose = [None, None]
+            self.recentPush = False
             return False #error - invalid location
         
         # Check occupancy before moving
@@ -222,7 +224,7 @@ class Agent():
             
         else:
             self.storeObjPose = [None, None]
-            #self.recentPush = False
+            self.recentPush = False
             return False #error - target cell is occupied by agent or other object
         
     # Pass the cell location to add force to that cell position   
@@ -309,9 +311,14 @@ class Agent():
         
     #Each turn the agent should attempt to move, then push, then drop beacon if needed
     def takeTurn(self):
+        if self.storeObjPose[0] != None and self.storeObjPose[0] >= self._goalLine:
+            self.completedObjective()
+            return
+        
         self.move()
         
         self.getNeighboorCellInfo()
+       
         if self.storeObjPose in self.neighborPose:
             self.push(self.storeObjPose[0], self.storeObjPose[1])
         

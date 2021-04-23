@@ -77,7 +77,7 @@ for i in range(objectAmount):
 agentList = []
 
 for i in range(agentAmount):
-    agentList.append(Agent(agentStartRows[0,i], agentStartCols[0,i], agentForce, Env))
+    agentList.append(Agent(agentStartRows[0,i], agentStartCols[0,i], agentForce, Env, R-goalZoneDepth))
     attempt = 0
     while (not objList[-1].PlacementSuccess()) and attempt < 5: #agents move out of conflicting placements
         agentList[-1].move()
