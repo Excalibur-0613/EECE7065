@@ -11,6 +11,8 @@ from Environment import Environment
 
 from Object import Object
 
+import numpy as np
+
 Env = Environment() #Create a default size 10 by 10 environment
 
 TestObject = Object(Env, 1, 1, 2)  #Create an object at location 1,1
@@ -42,6 +44,10 @@ print(TestObject.GetLocation())   #New location is one cell South of old locatio
 Env.GlobalForcesClear()  #Clear all forces
 
 print(TestCell.getforces())  #Forces are cleared!
+
+phMap = Env.getPhMap()
+
+print(phMap)
 
 
 

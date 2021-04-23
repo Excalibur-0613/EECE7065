@@ -60,9 +60,10 @@ class Agent():
     
         # Call into environment object 8 times to create a list of 8 elements with information for each neighboring cell
         for neighborCellPosition in self.neighborPose:
-            # Pass neighboor cell positions to getCellInfo method
-            tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
-            self.neighborInfo.append(tempCell)
+            if neighborCellPosition[0] < self._env.getSize()[0] and neighborCellPosition[1] < self._env.getSize()[0]:
+                # Pass neighboor cell positions to getCellInfo method
+                tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
+                self.neighborInfo.append(tempCell)
             
         # self.setCellProb()
         pass
@@ -126,7 +127,8 @@ class Agent():
             return False #error - target cell is occupied by agent or other object
     
     
-    
+    def PlacementSuccess(self):
+        return self._placementSuccess  
     
     
     
