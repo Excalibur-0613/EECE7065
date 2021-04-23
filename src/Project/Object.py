@@ -15,6 +15,7 @@ class Object(Environment):
         self._currentRow = r
         self._currentCol = c
         self._weight = w
+        self._hiding = False
         
         #Init can't return anything, but we want to know whether the object got placed properly
         #So we need a flag variable
@@ -47,7 +48,7 @@ class Object(Environment):
             return False #error - invalid location
         
         #Check occupancy before moving
-        if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
+        if TargetCell.getobj() == 0 and TargetCell.getagent() == 0 and not self._hiding:
             
             self._CurrentCell.updateCellObj(0) #Update the environment
             TargetCell.updateCellObj(1)
@@ -87,4 +88,11 @@ class Object(Environment):
     
     def PlacementSuccess(self):
         return self._placementSuccess 
+    
+    def hide(self, visible):
+        self._hiding = visible
+        if self._hiding == True:
+           self._CurrentCell.updateCellObj(0)
+        else:
+            self._CurrentCell.updateCellObj(1)
     

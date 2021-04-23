@@ -12,6 +12,8 @@ class Agent():
         self._env = E
         self._goalLine = goal  #This row is the start of the goal zone
         
+        self._trailStrength = -10  #How much repulsive ph the agent adds to each cell it visits
+        
         #Init can't return anything, but we want to know whether the object got placed properly
         #So we need a flag variable
         
@@ -21,7 +23,7 @@ class Agent():
         
         self._beacon = False
         self.beaconRange = 0
-        self._beaconPhDelta = 5 # How much beacon should increase ph at each epoch, tune as needed
+        self._beaconPhDelta = 1 # How much beacon should increase ph at each epoch, tune as needed
         self.beaconPhStore = [] # Stored changes to cells from beacon
         
         # Memory of the last object position seen
@@ -101,7 +103,7 @@ class Agent():
         self.neighborProb = []
         self.phVals = []
         self.prob = []
-        self.probSum = 0
+        self.probSum = 0.0
         
         for i in range(len(self.neighborInfo)):
             
@@ -109,11 +111,21 @@ class Agent():
             
         self.neighborMin = min(self.phVals) # take the minimum value of ph from the list 
         
-        for cellInfo in self.neighborInfo:
-            self.probSum = self.probSum + (sum(self.phVals) + abs(self.neighborMin) + 1) # Numerator
-            self.prob.append(sum(self.phVals) + abs(self.neighborMin) + 1) # Denomonator
-         
-        self.neighborProb = [x / self.probSum for x in self.prob] # Probability vector for each neighbor cell   
+        for i in range(len(self.neighborInfo)):
+            elementP = (self.phVals[i] + abs(self.neighborMin) + 1)
+            self.probSum += elementP
+            self.prob.append(elementP)
+        
+        # for cellInfo in self.neighborInfo:
+        #     self.probSum = self.probSum + (sum(self.phVals) + abs(self.neighborMin) + 1) # Numerator
+        #     self.prob.append(sum(self.phVals + abs(self.neighborMin) + 1)) # Denomonator
+            
+        if self.probSum == 0: #guess with even odds rather than divide by 0
+            print('oops')
+            self.neighborProb = [1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8, 1/8]
+        else:
+            self.neighborProb = [x / self.probSum for x in self.prob] # Probability vector for each neighbor cell   
+            #print(sum(self.neighborProb))
         
         pass
     
@@ -129,6 +141,8 @@ class Agent():
         
         
         self.getNeighboorCellInfo() #Update local perception BEFORE doing any check
+        
+        self._placementSuccess = False
         
         #Force check for adjacent objects
         # objIsNear = False
@@ -193,7 +207,6 @@ class Agent():
             r = self.newPose[0]
             c = self.newPose[1]
             
-        self._placementSuccess = False
         
         # Check validity and occupancy, then move
         if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
@@ -208,6 +221,11 @@ class Agent():
         
         # Check occupancy before moving
         if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
+            
+            if not self.recentPush:
+                #Deposit ph trail as agent leaves current cell
+                oldPh = self._CurrentCell.getph()
+                self._CurrentCell.updateCellPh(oldPh + self._trailStrength)
             
             self._CurrentCell.updateCellAgent(0) #Update the environment
             TargetCell.updateCellAgent(1)
@@ -321,6 +339,12 @@ class Agent():
        
         if self.storeObjPose in self.neighborPose:
             self.push(self.storeObjPose[0], self.storeObjPose[1])
+            
+        if self.recentPush and not self._placementSuccess:
+            self.beacon(1)
+        else:
+            self.beacon(0)
+            
         
     
     

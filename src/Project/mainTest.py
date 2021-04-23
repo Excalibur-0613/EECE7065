@@ -32,7 +32,7 @@ C = 70
 
 agentDens = 0.01 # Percent of agents on board 
 objDens = 0.005 # Percent of objects on board
-agentForce = 5 #How hard an agent pushes objects toward the South
+agentForce = 1 #How hard an agent pushes objects toward the South
 objMaxWeight = 3 #Upper weight limit for objects
 
 agentAmount = round(R * C * agentDens) # Number of agents depending on the size of the environment   
@@ -65,7 +65,7 @@ agentStartCols = np.random.randint(0, C, size = (1, agentAmount))
 objList = []
 
 for i in range(objectAmount):
-    objList.append(Object(Env, objectStartRows[0,i], objectStartCols[0,i], np.random.randint(1, objMaxWeight+1)))
+    objList.append(Object(Env, objectStartRows[0,i], objectStartCols[0,i], np.random.randint(2, objMaxWeight+1)))
     attempt = 0
     while (not objList[-1].PlacementSuccess()) and attempt < 5: #relocate conflicting placements
         objList[-1].Move(np.random.randint(0, R-goalZoneDepth), np.random.randint(0, C))
@@ -128,7 +128,7 @@ while not done:
         if pos[0] >= R - goalZoneDepth and o not in listOfRetrieved:
             retrievedObjects += 1
             listOfRetrieved.append(o)
-            Env.getCell(pos[0], pos[1]).updateCellObj(0)  #This hides retrieved objects from the agents by turning them invisible
+            objList[o].hide(True)  #This hides retrieved objects from the agents by turning them invisible
     
     if retrievedObjects == objectAmount:
         done = True
@@ -178,6 +178,7 @@ while not done:
 
 print(epoch)
 print(retrievedObjects)
+print(objectAmount)
 
 
 #THE END
