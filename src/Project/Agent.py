@@ -135,11 +135,11 @@ class Agent():
         #     if self.neighborInfo[i].getobj():
         #         objIsNear = True
         
-        # If object is directly north of object, i.e. "in the way" 
+        # If object is directly north of agent, i.e. "in the way" 
         # will only have probability to move towards SW or SE
         # Top priority case to avoid errors
-        if self.neighborInfo[0].getobj() == 1:
-            
+        if len(self.neighborInfo) >= 5 and self.neighborInfo[4].getobj():
+            print('blocking')
             rng = np.random.default_rng()
             indexList = np.array([3,5]) # 2 possible neighbors to move towards
             index = rng.choice(indexList,1) # Choose which neighbor cell to go to
@@ -155,7 +155,7 @@ class Agent():
             #print(self.storeObjPose)
             self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
             
-            if self.recentPush and self.neighborInfo[4].getobj() == 0:
+            if self.recentPush and self.neighborInfo[0].getobj() == 0:
                 
                 # self.setNeighborProb() # Make sure appropriate attributes are filled
                 self.newPose = self.neighborPose[4] # Move south 
