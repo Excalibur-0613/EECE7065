@@ -79,22 +79,25 @@ class Agent():
         for neighborCellPosition in self.neighborPose:
 
             # Pass neighboor cell positions to getCellInfo method
-            tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
-            self.neighborInfo.append(tempCell)
-            # Store first object in array to remember (i.e. northernmost), ignore the others
-            if self.neighborInfo[-1].getobj() and self.storeObjPose[0] == None and self.storeObjPose[1] == None:
-                
-                self.storeObjPose = [self.neighborInfo[-1].getr(), self.neighborInfo[-1].getc()]
-                
-            elif self.neighborInfo[-1].getobj() and self.storeObjPose[0] != None and self.storeObjPose[1] != None:
-                
-                pass
+            # tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
+            # self.neighborInfo.append(tempCell)
             
-            if neighborCellPosition[0] < self._env.getSize()[0] and neighborCellPosition[1] < self._env.getSize()[0]:
+            if neighborCellPosition[0] < self._env.getSize()[0] and neighborCellPosition[1] < self._env.getSize()[1] and neighborCellPosition[0] > 0 and neighborCellPosition[1] > 0:
                 
                 # Pass neighboor cell positions to getCellInfo method
                 tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
                 self.neighborInfo.append(tempCell)
+            
+                # Store first object in array to remember (i.e. northernmost), ignore the others
+                if self.neighborInfo[-1].getobj() and self.storeObjPose[0] == None and self.storeObjPose[1] == None:
+                    
+                    self.storeObjPose = [self.neighborInfo[-1].getr(), self.neighborInfo[-1].getc()]
+                    
+                elif self.neighborInfo[-1].getobj() and self.storeObjPose[0] != None and self.storeObjPose[1] != None:
+                    
+                    pass
+            
+            
             
         # return self.neighborInfo
     
@@ -109,12 +112,11 @@ class Agent():
             
             self.phVals.append(self.neighborInfo[i].getph())
             
-        # print(self.phVals)
         self.neighborMin = min(self.phVals) # take the minimum value of ph from the list 
         
         for cellInfo in self.neighborInfo:
             self.probSum = self.probSum + (sum(self.phVals) + abs(self.neighborMin) + 1) # Numerator
-            self.prob.append(sum(self.phVals) + abs(self.neighborMin) + 1) # Denom
+            self.prob.append(sum(self.phVals) + abs(self.neighborMin) + 1) # Denomonator
          
         self.neighborProb = [x / self.probSum for x in self.prob] # Probability vector for each neighbor cell   
         
@@ -125,6 +127,7 @@ class Agent():
     # will return false if agent was unable to move successfully
     def move(self):
         
+        # Regular Random Movement, no prior objects
         if self.storeObjPose[0] == None and self.storeObjPose[1] == None: 
         
             self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
@@ -137,64 +140,57 @@ class Agent():
             self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
             r = self.newPose[0]
             c = self.newPose[1]
-            
-            self._placementSuccess = False
-            
-            #Check validity and occupancy, then move
-            if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
-                TargetCell = self._env.getCell(r,c) #pick target cell
-            else:
-                return False #error - invalid location
-            
-            #Check occupancy before moving
-            if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
-                
-                self._CurrentCell.updateCellObj(0) #Update the environment
-                TargetCell.updateCellObj(1)
-                
-                self._CurrentCell = TargetCell #record the update
-                self._currentRow = r
-                self._currentCol = c
-                
-                self._placementSuccess = True
-                return True #Object successfully moved
-            else:
-                return False #error - target cell is occupied by agent or other object
         
         # If there was an object pushed in a previous time step, set the propability to south only
         # will not trigger if there is another object directly south
         elif self.recentPush and self.neighborInfo[4].getobj() == 0:
+            
             self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
             # self.setNeighborProb() # Make sure appropriate attributes are filled
             self.newPose = self.neighborPose[4] # Move south 
             r = self.newPose[0]
             c = self.newPose[1]
+        
+        # If object is directly north of object, i.e. "in the way" 
+        # will only have probability to move towards SW or SE
+        elif self.neighborInfo[0].getobj() == 0:
             
-            self._placementSuccess = False
+            rng = np.random.default_rng()
+            indexList = np.array([3,5]) # 2 possible neighbors to move towards
+            index = rng.choice(indexList,1) # Choose which neighbor cell to go to
+            self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
+            r = self.newPose[0]
+            c = self.newPose[1]
             
-            # Check validity and occupancy, then move
-            if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
-                TargetCell = self._env.getCell(r,c) #pick target cell
-            else:
-                return False #error - invalid location
+        self._placementSuccess = False
+        
+        # Check validity and occupancy, then move
+        if r in range(self._env.getSize()[0]) and c in range(self._env.getSize()[1]): #row and col are in bounds
+        
+            TargetCell = self._env.getCell(r,c) #pick target cell
             
-            # Check occupancy before moving
-            if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
-                
-                self._CurrentCell.updateCellObj(0) #Update the environment
-                TargetCell.updateCellObj(1)
-                
-                self._CurrentCell = TargetCell #record the update
-                self._currentRow = r
-                self._currentCol = c
-                
-                self._placementSuccess = True
-                self.storeObjPose = [None, None]
-                self.recentPush = False
-                
-                return True #Object successfully moved
-            else:
-                return False #error - target cell is occupied by agent or other object
+        else:
+            
+            return False #error - invalid location
+        
+        # Check occupancy before moving
+        if TargetCell.getobj() == 0 and TargetCell.getagent() == 0:
+            
+            self._CurrentCell.updateCellObj(0) #Update the environment
+            TargetCell.updateCellObj(1)
+            
+            self._CurrentCell = TargetCell #record the update
+            self._currentRow = r
+            self._currentCol = c
+            
+            self._placementSuccess = True
+            self.storeObjPose = [None, None]
+            self.recentPush = False
+            
+            return True #Object successfully moved
+            
+        else:
+            return False #error - target cell is occupied by agent or other object
         
     # Pass the cell location to add force to that cell position   
     def push(self, r, c):
@@ -227,6 +223,7 @@ class Agent():
             envSize = self._env.getSize()
             self._beacon = 1
             self.beaconPhStore = []
+            self.cellPhPoses = []
             self.beaconRange = self.beaconRange + 1 # Every increase is one on top of the neighbor vision
             self.landMark = [self._currentRow + self.beaconRange, self._currentCol + self.beaconRange] # Start at northeast corner
             self.beaconSize = 2 * self.beaconRange + 3 # Square size of beacon matrix
@@ -239,13 +236,17 @@ class Agent():
                     
                     cellUpdate = [self.landMark[0] - i, self.landMark[1] - j]
             
-                    if cellUpdate[0] <= envSize[0] and cellUpdate[0] <= envSize[1] and cellUpdate[0] >= 0 and cellUpdate[0] >= 0:
-                            
+                    if cellUpdate[0] < envSize[0] and cellUpdate[1] < envSize[1] and cellUpdate[0] > 0 and cellUpdate[1] > 0:
+                        
+                        # print([cellUpdate[0],cellUpdate[1]])
                         tempCell = self._env.getCell(cellUpdate[0],cellUpdate[1])
+                        # print([tempCell.getr(), tempCell.getc()])
                         currPh = tempCell.getph()
+                        # print(currPh)
                         newPh = currPh + self._beaconPhDelta
                         self.beaconPhStore.append(newPh)
                         tempCell.updateCellPh(newPh)
+                        self.cellPhPoses.append(cellUpdate)
                         
                     else:
                         pass
@@ -254,20 +255,32 @@ class Agent():
         else:
             
             if self.beaconPhStore != []:
-                
+                storeIndex = 0
                 envSize = self._env.getSize()  
                 
+                for elem in self.cellPhPoses:
+                    
+                    tempCell = self._env.getCell(elem[0],elem[1])
+                    currPh = tempCell.getph()
+                    newPh = currPh - self.beaconPhStore[storeIndex]
+                    tempCell.updateCellPh(newPh) 
+                    storeIndex = storeIndex + 1
+                
+            else:
+                pass
+              
+                '''
                 for i in range(self.beaconSize):
                     
                     for j in range(self.beaconSize):
                         
                         cellUpdate = [self.landMark[0] - i, self.landMark[1] - j]
                         
-                        if cellUpdate[0] <= envSize[0] and cellUpdate[0] <= envSize[1] and cellUpdate[0] >= 0 and cellUpdate[0] >= 0:
+                        if cellUpdate[0] < envSize[0] and cellUpdate[1] < envSize[1] and cellUpdate[0] > 0 and cellUpdate[0] > 0:
                                 
                             tempCell = self._env.getCell(cellUpdate[0],cellUpdate[1])
                             currPh = tempCell.getph()
-                            newPh = currPh - self.beaconPhStore[self.beaconSize * i + j]
+                            newPh = currPh - self.beaconPhStore[i + j]
                             tempCell.updateCellPh(newPh) 
                                 
                         else:
@@ -275,16 +288,16 @@ class Agent():
                         
             else:
                 pass
-                        
+            '''            
             self.beaconRange = 0
             self.beaconPhStore = []
-            self.beaconRange = 0
             
             return False
         
     # Call this to reset critical values for agent after the object is pushed to goal area
     def completedObjective(self):
-        self.beacon(False)
+        
+        self.beacon(0)
         self.storeObjPose = [None, None]
         self.recentPush = False
             

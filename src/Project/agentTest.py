@@ -112,20 +112,21 @@ tempCell = Env.getCell(tempR + 1, tempC)
 currPh = tempCell.getph()
 print(currPh)
 
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
-agent[10].beacon(1)
+for i in range(len(agent)):
+    for j in range(30):
+        agent[10].beacon(1)
+        tempCell = Env.getCell(tempR + 1, tempC)
+        currPh = tempCell.getph()
+        print(currPh)
+        # print(j)
+    # print(i)
 
+for i in range(len(agent)):
+    agent[10].beacon(0)
+    print(i)
+
+print("done")
+'''
 currPh = tempCell.getph()
 print(currPh)
 
@@ -134,6 +135,7 @@ currPh = tempCell.getph()
 print(currPh)
 agent[10].beacon(0)
 # print(obj[10].GetLocation())
+'''
 
 
 
