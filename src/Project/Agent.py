@@ -29,8 +29,9 @@ class Agent():
         
         self.storeObjPose = [None, None]
         
-        #On initial call of move(), neighborInfo may be empty, so let's populate it before trying to index in
+        #On initial call of move(), neighborInfo and recentPush may be empty, so let's populate them before trying to index in
         self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
+        self.recentPush = False
         
         if self._currentRow in range(self._env.getSize()[0]) and self._currentCol in range(self._env.getSize()[1]): #row and col are in bounds
             
