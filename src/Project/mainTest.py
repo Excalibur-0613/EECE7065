@@ -30,7 +30,7 @@ PlottingEnabled = True
 R = 70
 C = 70
 
-agentDens = 0.01 # Percent of agents on board 
+agentDens = 0.06 # Percent of agents on board 
 objDens = 0.005 # Percent of objects on board
 agentForce = 1 #How hard an agent pushes objects toward the South
 objMaxWeight = 3 #Upper weight limit for objects
@@ -39,7 +39,7 @@ agentAmount = round(R * C * agentDens) # Number of agents depending on the size 
 objectAmount = round(R * C * objDens) # Number objects depending on size of environment
 goalZoneDepth = round(R * 0.1)  #The southernmost rows are the 'goal zone'
 
-phDecay = -0.2  #pheromone decay rate
+phDecay = -0.8  #pheromone decay rate
 
 epochLimit = 100 #Simulation will stop after this many full rounds
 
@@ -176,9 +176,14 @@ while not done:
     
 #Output results summary
 
+print('epochs:')
 print(epoch)
+print('objects recovered:')
 print(retrievedObjects)
+print('Total objects:')
 print(objectAmount)
+print('Total agents:')
+print(agentAmount)
 
 
 #THE END
