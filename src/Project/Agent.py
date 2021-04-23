@@ -77,21 +77,24 @@ class Agent():
     
         # Call into environment object 8 times to create a list of 8 elements with information for each neighboring cell
         for neighborCellPosition in self.neighborPose:
-<<<<<<< HEAD
+
             # Pass neighboor cell positions to getCellInfo method
             tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
             self.neighborInfo.append(tempCell)
             # Store first object in array to remember (i.e. northernmost), ignore the others
             if self.neighborInfo[-1].getobj() and self.storeObjPose[0] == None and self.storeObjPose[1] == None:
+                
                 self.storeObjPose = [self.neighborInfo[-1].getr(), self.neighborInfo[-1].getc()]
+                
             elif self.neighborInfo[-1].getobj() and self.storeObjPose[0] != None and self.storeObjPose[1] != None:
+                
                 pass
-=======
+            
             if neighborCellPosition[0] < self._env.getSize()[0] and neighborCellPosition[1] < self._env.getSize()[0]:
+                
                 # Pass neighboor cell positions to getCellInfo method
                 tempCell = self._env.getCell(neighborCellPosition[0], neighborCellPosition[1])
                 self.neighborInfo.append(tempCell)
->>>>>>> c3e04ed81a894bcfaa3e577cceb3e420dceeee01
             
         # return self.neighborInfo
     
@@ -207,15 +210,11 @@ class Agent():
             self.recentPush = True
             
         else:
-<<<<<<< HEAD
-            return False
-=======
             return False #error - target cell is occupied by agent or other object
     
     
     def PlacementSuccess(self):
-        return self._placementSuccess  
->>>>>>> c3e04ed81a894bcfaa3e577cceb3e420dceeee01
+        return self._placementSuccess
     
     # Place beacon if object did not move from last time step
     # pass b = 1 to initially activate beacon
