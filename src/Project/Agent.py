@@ -142,13 +142,17 @@ class Agent():
         # will not trigger if there is another object directly south
         elif self.storeObjPose[0] != None and self.storeObjPose[1] != None:
             
+            self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
+            
             if self.recentPush and self.neighborInfo[4].getobj() == 0:
                 
-                self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
                 # self.setNeighborProb() # Make sure appropriate attributes are filled
                 self.newPose = self.neighborPose[4] # Move south 
                 r = self.newPose[0]
                 c = self.newPose[1]
+                
+            elif self.storeObjPose in self.neighborPose:
+                return False  #If we are within pushing range of the object, we stay put so we can push it
             
         # Regular Random Movement, no prior objects
         else : 
