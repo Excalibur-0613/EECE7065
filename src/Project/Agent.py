@@ -29,6 +29,9 @@ class Agent():
         
         self.storeObjPose = [None, None]
         
+        #On initial call of move(), neighborInfo may be empty, so let's populate it before trying to index in
+        self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
+        
         if self._currentRow in range(self._env.getSize()[0]) and self._currentCol in range(self._env.getSize()[1]): #row and col are in bounds
             
             self._CurrentCell = self._env.getCell(self._currentRow, self._currentCol) #pick current cell
@@ -116,6 +119,8 @@ class Agent():
     # current neighbor cell ph values. 
     # will return false if agent was unable to move successfully
     def move(self):
+        
+        
         
         # If object is directly north of object, i.e. "in the way" 
         # will only have probability to move towards SW or SE
