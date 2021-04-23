@@ -122,11 +122,14 @@ class Agent():
     def move(self):
         
         
+        #r and c declared outside conditionals to fix ref before assigned errors
+        r = 0
+        c = 0
         
         # If object is directly north of object, i.e. "in the way" 
         # will only have probability to move towards SW or SE
         # Top priority case to avoid errors
-        if self.neighborInfo[0].getobj() == 0:
+        if self.neighborInfo[0].getobj() == 1:
             
             rng = np.random.default_rng()
             indexList = np.array([3,5]) # 2 possible neighbors to move towards
