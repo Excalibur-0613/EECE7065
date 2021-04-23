@@ -102,9 +102,37 @@ print(agent[10].getC())
 # print(agent[10].getNeighboorCellInfo()[0].getc())
 agent[10].move()
 
+tempR = agent[10].getR()
+tempC = agent[10].getC()
+
 print(agent[10].getR())
 print(agent[10].getC())
 
+tempCell = Env.getCell(tempR + 1, tempC)
+currPh = tempCell.getph()
+print(currPh)
+
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+agent[10].beacon(1)
+
+currPh = tempCell.getph()
+print(currPh)
+
+agent[10].beacon(0)
+currPh = tempCell.getph()
+print(currPh)
+agent[10].beacon(0)
 # print(obj[10].GetLocation())
 
 
