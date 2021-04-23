@@ -127,8 +127,32 @@ class Agent():
     # will return false if agent was unable to move successfully
     def move(self):
         
+        # If object is directly north of object, i.e. "in the way" 
+        # will only have probability to move towards SW or SE
+        # Top priority case to avoid errors
+        if self.neighborInfo[0].getobj() == 0:
+            
+            rng = np.random.default_rng()
+            indexList = np.array([3,5]) # 2 possible neighbors to move towards
+            index = rng.choice(indexList,1) # Choose which neighbor cell to go to
+            self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
+            r = self.newPose[0]
+            c = self.newPose[1]
+        
+        # If there was an object pushed in a previous time step, set the propability to move south 
+        # will not trigger if there is another object directly south
+        elif self.storeObjPose[0] != None and self.storeObjPose[1] != None:
+            
+            if self.recentPush and self.neighborInfo[4].getobj() == 0:
+                
+                self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
+                # self.setNeighborProb() # Make sure appropriate attributes are filled
+                self.newPose = self.neighborPose[4] # Move south 
+                r = self.newPose[0]
+                c = self.newPose[1]
+            
         # Regular Random Movement, no prior objects
-        if self.storeObjPose[0] == None and self.storeObjPose[1] == None: 
+        else : 
         
             self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
             self.setNeighborProb() # Make sure appropriate attributes are filled
@@ -137,27 +161,6 @@ class Agent():
             indexList = np.array([0,1,2,3,4,5,6,7]) # 8 possible neighbors to move towards
             p = self.neighborProb # Array of probabilities
             index = rng.choice(indexList,1,p) # Choose which neighbor cell to go to
-            self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
-            r = self.newPose[0]
-            c = self.newPose[1]
-        
-        # If there was an object pushed in a previous time step, set the propability to south only
-        # will not trigger if there is another object directly south
-        elif self.recentPush and self.neighborInfo[4].getobj() == 0:
-            
-            self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
-            # self.setNeighborProb() # Make sure appropriate attributes are filled
-            self.newPose = self.neighborPose[4] # Move south 
-            r = self.newPose[0]
-            c = self.newPose[1]
-        
-        # If object is directly north of object, i.e. "in the way" 
-        # will only have probability to move towards SW or SE
-        elif self.neighborInfo[0].getobj() == 0:
-            
-            rng = np.random.default_rng()
-            indexList = np.array([3,5]) # 2 possible neighbors to move towards
-            index = rng.choice(indexList,1) # Choose which neighbor cell to go to
             self.newPose = self.neighborPose[int(index)] # Give new list of decided move location
             r = self.newPose[0]
             c = self.newPose[1]
@@ -218,6 +221,7 @@ class Agent():
     # pass b = 0 to deactivate and remove all previously placed ph
     def beacon(self, b):
 
+        # Stores locations of cells where ph is updated
         if b == 1:
             
             envSize = self._env.getSize()
@@ -238,11 +242,8 @@ class Agent():
             
                     if cellUpdate[0] < envSize[0] and cellUpdate[1] < envSize[1] and cellUpdate[0] > 0 and cellUpdate[1] > 0:
                         
-                        # print([cellUpdate[0],cellUpdate[1]])
                         tempCell = self._env.getCell(cellUpdate[0],cellUpdate[1])
-                        # print([tempCell.getr(), tempCell.getc()])
                         currPh = tempCell.getph()
-                        # print(currPh)
                         newPh = currPh + self._beaconPhDelta
                         self.beaconPhStore.append(newPh)
                         tempCell.updateCellPh(newPh)
@@ -252,6 +253,8 @@ class Agent():
                         pass
 
             return True
+        
+        # Uses stored cell location and ph vals to remove beacon influence
         else:
             
             if self.beaconPhStore != []:
@@ -269,26 +272,6 @@ class Agent():
             else:
                 pass
               
-                '''
-                for i in range(self.beaconSize):
-                    
-                    for j in range(self.beaconSize):
-                        
-                        cellUpdate = [self.landMark[0] - i, self.landMark[1] - j]
-                        
-                        if cellUpdate[0] < envSize[0] and cellUpdate[1] < envSize[1] and cellUpdate[0] > 0 and cellUpdate[0] > 0:
-                                
-                            tempCell = self._env.getCell(cellUpdate[0],cellUpdate[1])
-                            currPh = tempCell.getph()
-                            newPh = currPh - self.beaconPhStore[i + j]
-                            tempCell.updateCellPh(newPh) 
-                                
-                        else:
-                            pass
-                        
-            else:
-                pass
-            '''            
             self.beaconRange = 0
             self.beaconPhStore = []
             

@@ -125,7 +125,6 @@ for i in range(len(agent)):
     agent[10].beacon(0)
     print(i)
 
-print("done")
 '''
 currPh = tempCell.getph()
 print(currPh)
