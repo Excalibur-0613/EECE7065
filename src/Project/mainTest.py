@@ -32,7 +32,7 @@ C = 70
 
 agentDens = 0.01 # Percent of agents on board 
 objDens = 0.005 # Percent of objects on board
-agentForce = 1 #I'm not sure what this does
+agentForce = 5 #How hard an agent pushes objects toward the South
 objMaxWeight = 3 #Upper weight limit for objects
 
 agentAmount = round(R * C * agentDens) # Number of agents depending on the size of the environment   
@@ -94,6 +94,7 @@ epoch = 0
 t = 0
 
 retrievedObjects = 0
+listOfRetrieved = []
 
 agentTurnOrder = np.arange(agentAmount)
 np.random.shuffle(agentTurnOrder)
@@ -111,7 +112,7 @@ while not done:
     #Agents move and push in random order
     np.random.shuffle(agentTurnOrder)
     for a in range(agentAmount):
-        agentList[agentTurnOrder[a]].move()
+        agentList[agentTurnOrder[a]].takeTurn()
         t += 1
    
     #Objects try to move
@@ -124,8 +125,9 @@ while not done:
     Env.GlobalPhDelta(phDecay)
     for o in range(objectAmount):
         pos = objList[o].GetLocation()
-        if pos[0] >= R - goalZoneDepth:
+        if pos[0] >= R - goalZoneDepth and o not in listOfRetrieved:
             retrievedObjects += 1
+            listOfRetrieved.append(o)
             Env.getCell(pos[0], pos[1]).updateCellObj(0)  #This hides retrieved objects from the agents by turning them invisible
     
     if retrievedObjects == objectAmount:

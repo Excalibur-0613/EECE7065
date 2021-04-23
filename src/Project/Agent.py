@@ -139,7 +139,7 @@ class Agent():
         # will only have probability to move towards SW or SE
         # Top priority case to avoid errors
         if len(self.neighborInfo) >= 5 and self.neighborInfo[4].getobj():
-            print('blocking')
+            #print('blocking')
             rng = np.random.default_rng()
             indexList = np.array([3,5]) # 2 possible neighbors to move towards
             index = rng.choice(indexList,1) # Choose which neighbor cell to go to
@@ -153,20 +153,31 @@ class Agent():
         elif self.storeObjPose[0] != None and self.storeObjPose[1] != None:
             
             #print(self.storeObjPose)
-            self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
+            #self.getNeighboorCellInfo() # Make sure appropriate attributes are filled
             
             if self.recentPush and self.neighborInfo[0].getobj() == 0:
                 
                 # self.setNeighborProb() # Make sure appropriate attributes are filled
-                self.newPose = self.neighborPose[4] # Move south 
+                self.newPose = self.neighborPose[0] # Move south 
                 r = self.newPose[0]
                 c = self.newPose[1]
+                #print('follow')
                 
             else:
                 #print('ding!')
                 self.storeObjPose = [None, None]
+                #self.recentPush = False
                 return False  #If we are within pushing range of the object, we stay put so we can push it
             
+        elif self.recentPush: #If we pushed the object out of view, move South
+            
+            self.newPose = self.neighborPose[0] # Move south 
+            r = self.newPose[0]
+            c = self.newPose[1]
+            
+        # If there was an object pushed in a previous time step, set the propability to move south 
+        # will not trigger if there is another object directly south
+        
         # Regular Random Movement, no prior objects
         else : 
         
@@ -211,6 +222,7 @@ class Agent():
             
         else:
             self.storeObjPose = [None, None]
+            #self.recentPush = False
             return False #error - target cell is occupied by agent or other object
         
     # Pass the cell location to add force to that cell position   
@@ -221,8 +233,9 @@ class Agent():
         
         if self.pushCell.getobj() == 1:
         
-            currCellForce = self.pushCell.getCellForces() # Get the current force attatched to that cell
-            newForce = currCellForce + self._force # Adds force attributed to the current agent to the selected cell
+            currCellForce = self.pushCell.getforces() # Get the current force attatched to that cell
+            newForce = currCellForce #+ self._force # Adds force attributed to the current agent to the selected cell
+            newForce[0] = currCellForce[0] + self._force #Southward force component is updated
             self.pushCell.updateCellForces(newForce) # Pass new force after applied force is added
             self.recentPush = True
             
@@ -294,6 +307,16 @@ class Agent():
             
             return False
         
+    #Each turn the agent should attempt to move, then push, then drop beacon if needed
+    def takeTurn(self):
+        self.move()
+        
+        self.getNeighboorCellInfo()
+        if self.storeObjPose in self.neighborPose:
+            self.push(self.storeObjPose[0], self.storeObjPose[1])
+        
+    
+    
     # Call this to reset critical values for agent after the object is pushed to goal area
     def completedObjective(self):
         
