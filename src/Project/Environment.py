@@ -19,7 +19,7 @@ class Environment(Cell):
         for row in range(R):
             self._cell_array.append([])
             for location in range(C):
-                self._cell_array[row].append(Cell(row,location, 0,0,0))        #This creates one new empty cell object in each possible location
+                self._cell_array[row].append(Cell(row,location, 0,0,0.0))        #This creates one new empty cell object in each possible location
     
        
         #This code probably belongs in main - The environment should not need to create agents and objects
@@ -45,24 +45,45 @@ class Environment(Cell):
         return Size
     
     # This should expose a particular cell object so the attributes can be changed via the cell class's methods
+    # Out of bounds will return nothing at all
     def getCell(self, row, col):        
-        return self._cell_array[row][col]
+        if row < self._row_size and col < self._column_size:
+            return self._cell_array[row][col]
+        else:
+            return
     
     # This should be helpful for pheromone decay.  Pheromone levels can now be positive or negative.
     #Negative values for PhChange push all ph closer to zero regardless of sign
+    #Decay will not push ph across zero - this should avoid oscillation
     def GlobalPhDelta(self, PhChange): 
         if PhChange == 0:
             return
         for row in range(self._row_size):
             for location in range(self._column_size):
                 oldPh = self._cell_array[row][location].getph()
-                self._cell_array[row][location].updateCellPh(oldPh + np.sign(oldPh) * PhChange)
+                if np.sign(oldPh) == np.sign(oldPh + np.sign(oldPh) * PhChange):                
+                    self._cell_array[row][location].updateCellPh(oldPh + np.sign(oldPh) * PhChange)
+                else:
+                    self._cell_array[row][location].updateCellPh(0.0)
                     
     #This will return the force values in each cell back to 0,0. Force is supposed to be momentary, so should be cleared at the end of each timestep
     def GlobalForcesClear(self):  
         for row in range(self._row_size):
             for location in range(self._column_size):
                 self._cell_array[row][location].updateCellForces([0,0])
+                
+    #This will return the current ph values as a np array for plotting
+    def getPhMap(self):
+        #Make an empty array
+        phMap = np.zeros([self._row_size, self._column_size])
+        #Iterate through array and write in the values from each corresponding cell
+        for row in range(self._row_size):
+           for location in range(self._column_size):
+               phMap[row, location] = self._cell_array[row][location].getph()
+        return phMap
+                
+        
+        
                     
 
     
